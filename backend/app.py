@@ -1,15 +1,21 @@
-from flask import Flask
+from flask import Flask, jsonify
+from flask_cors import CORS
+from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
 from models import *
+from routes import *
 import hashlib
 import os
 
-# Load environmental variables
-load_dotenv()
-
 # Initialize Flask app
 app = Flask(__name__)
-app.secret_key = os.getenv("APP_SECRET")
+
+# Register Blueprints
+app.register_blueprint(auth_bp)
 
 # Configure Database
 database_url = os.getenv("DATABASE_URL")
@@ -21,7 +27,25 @@ if not database_url:
   database_url = f"sqlite:///{db_path}"
 
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+app.config["JWT_SECRET_KEY"] = os.getenv("APP_SECRET") or "devsecret"
+
+# Configure Mail
+app.config["MAIL_SERVER"] = "smtp.gmail.com"
+app.config["MAIL_PORT"] = 587
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
+app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
+app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_USERNAME")
+
+# Initialize extensions
 db.init_app(app)
+jwt = JWTManager(app)
+mail.init_app(app)
+
+# Handle unauthorized access
+@jwt.unauthorized_loader
+def unauthorized_response(callback):
+  return jsonify({"error": "Missing or invalid token"}), 401
 
 with app.app_context():
   db.create_all()
@@ -31,14 +55,18 @@ with app.app_context():
     password = "superuser"
     pwHash = hashlib.sha256(password.encode()).hexdigest()
     admin = User(
-      email="admin@gmail.com", password=pwHash,
-      name="admin", contact_number="+91 90000 90000",
+      email="admin@gmail.com",
+      password=pwHash,
+      name="admin",
+      contact_number="+91 90000 90000",
       role=RoleEnum.ADMIN,
     )
     db.session.add(admin)
     db.session.commit()
 
     print("[Database and tables created]")
+
+CORS(app, supports_credentials=True)
 
 if __name__ == "__main__":
   app.run(host="0.0.0.0", port=5000, debug=True)
