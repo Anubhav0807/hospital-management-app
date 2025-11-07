@@ -1,16 +1,28 @@
 <template>
-  <div>
-    <div class="text-center mt-5">Welcome, {{ role }}</div>
-  </div>
+  <Dashboard v-if="user" :title="titleCase(user.role)" :tabs="tabs[user.role]" :user="user" />
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { titleCase } from '../utils'
 
-const role = ref(null)
+import Dashboard from '../components/dashboard/Dashboard.vue'
+
+const user = ref(null)
+
+const tabs = {
+  admin: [
+    { label: 'Home', component: 'HomeTab', name: 'home', icon: 'bi bi-house' },
+    { label: 'Doctors', component: 'DoctorsTab', name: 'doctors', icon: 'bi bi-person-badge' },
+    { label: 'Patients', component: 'PatientsTab', name: 'patients', icon: 'bi bi-people' },
+    { label: 'Appointments', component: 'AppointmentsTab', name: 'appointments', icon: 'bi bi-calendar-check' }
+  ],
+  doctor: [],
+  patient: []
+}
 
 onMounted(() => {
-  const user = JSON.parse(localStorage.getItem("user") || "{}")
-  role.value = user.role
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
+  user.value = storedUser
 })
 </script>

@@ -47,6 +47,7 @@ class Doctor(db.Model):
   user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
   department_id = db.Column(db.Integer, db.ForeignKey("department.id"), nullable=False)
   experience_years = db.Column(db.Integer, default=0, nullable=False)
+  blacklisted = db.Column(db.Boolean, default=False, nullable=False)
 
   # Relationships
   user = db.relationship("User", back_populates="doctor_profile", uselist=False)
@@ -61,6 +62,7 @@ class Patient(db.Model):
   gender = db.Column(db.Enum(GenderEnum), nullable=False)
   address = db.Column(db.Text, nullable=False)
   medical_history = db.Column(db.Text)
+  blacklisted = db.Column(db.Boolean, default=False, nullable=False)
 
   # Relationships
   user = db.relationship("User", back_populates="patient_profile", uselist=False)

@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
+from datetime import timedelta
 
 # Load environment variables
 load_dotenv()
@@ -16,6 +17,8 @@ app = Flask(__name__)
 
 # Register Blueprints
 app.register_blueprint(auth_bp)
+app.register_blueprint(admin_bp)
+app.register_blueprint(appointments_bp)
 
 # Configure Database
 database_url = os.getenv("DATABASE_URL")
@@ -28,6 +31,7 @@ if not database_url:
 
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["JWT_SECRET_KEY"] = os.getenv("APP_SECRET") or "devsecret"
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
 
 # Configure Mail
 app.config["MAIL_SERVER"] = "smtp.gmail.com"

@@ -1,6 +1,6 @@
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 from flask import Blueprint, jsonify, render_template, request
-from flask_jwt_extended import create_access_token, jwt_required
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_mail import Message
 from models import *
 from . import mail
@@ -181,3 +181,91 @@ def update_password():
   db.session.commit()
 
   return jsonify({"message": "Password updated successfully"}), 200
+
+@auth_bp.route("/profile", methods=["GET"])
+@jwt_required()
+def get_profile():
+  user_id = get_jwt_identity()
+  user = User.query.filter_by(id=user_id).first()
+
+  if not user:
+    return jsonify({"error": "User not found"}), 404
+
+  # Base user data
+  user_data = {
+    "id": user.id,
+    "email": user.email,
+    "name": user.name,
+    "contact_number": user.contact_number,
+    "role": user.role.value,
+  }
+
+  # Add role-specific details
+  if user.role.value.lower() == "doctor":
+    doctor = user.doctor_profile
+    user_data["doctor_profile"] = {
+      "department_id": doctor.department_id,
+      "department_name": doctor.department.name,
+      "experience_years": doctor.experience_years,
+      "blacklisted": doctor.blacklisted,
+    }
+
+  elif user.role.value.lower() == "patient":
+    patient = user.patient_profile
+    user_data["patient_profile"] = {
+      "age": patient.age,
+      "gender": patient.gender.value,
+      "address": patient.address,
+      "medical_history": patient.medical_history,
+      "blacklisted": patient.blacklisted,
+    }
+
+  return jsonify(user_data), 200
+
+@auth_bp.route("/profile", methods=["PUT"])
+@jwt_required()
+def update_profile():
+  user_id = get_jwt_identity()
+  user = User.query.filter_by(id=user_id).first()
+
+  if not user:
+    return jsonify({"error": "User not found"}), 404
+
+  data = request.get_json()
+
+  # Update base user fields
+  if "name" in data:
+    user.name = data["name"]
+  if "contact_number" in data:
+    user.contact_number = data["contact_number"]
+
+  # Doctor-specific updates
+  if user.role.value.lower() == "doctor" and "doctor_profile" in data:
+    doc_data = data["doctor_profile"]
+    doc = user.doctor_profile
+    if not doc:
+      return jsonify({"error": "Doctor profile not found"}), 400
+
+    if "experience_years" in doc_data:
+      doc.experience_years = int(doc_data["experience_years"])
+    if "department_id" in doc_data:
+      doc.department_id = int(doc_data["department_id"])
+
+  # Patient-specific updates
+  if user.role.value.lower() == "patient" and "patient_profile" in data:
+    pat_data = data["patient_profile"]
+    pat = user.patient_profile
+    if not pat:
+      return jsonify({"error": "Patient profile not found"}), 400
+
+    if "age" in pat_data:
+      pat.age = int(pat_data["age"])
+    if "gender" in pat_data:
+      pat.gender = GenderEnum(pat_data["gender"])
+    if "address" in pat_data:
+      pat.address = pat_data["address"]
+    if "medical_history" in pat_data:
+      pat.medical_history = pat_data["medical_history"]
+
+  db.session.commit()
+  return jsonify({"message": "Profile updated successfully"}), 200

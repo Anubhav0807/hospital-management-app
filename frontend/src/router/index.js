@@ -3,7 +3,7 @@ import LoginPage from "../pages/LoginPage.vue";
 import RegisterPage from "../pages/RegisterPage.vue";
 import ResetPasswordPage from "../pages/ResetPasswordPage.vue";
 import DashboardPage from "../pages/DashboardPage.vue";
-import api from "../api.js";
+import ProfilePage from "../pages/ProfilePage.vue";
 
 const routes = [
   { path: "/", redirect: "/dashboard" },
@@ -11,6 +11,7 @@ const routes = [
   { path: "/login", name: "Login", component: LoginPage },
   { path: "/register", name: "Register", component: RegisterPage },
   { path: "/reset-password", name: "ResetPassword", component: ResetPasswordPage },
+  { path: "/profile", name: "Profile", component: ProfilePage },
 ];
 
 const router = createRouter({
