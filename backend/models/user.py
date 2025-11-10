@@ -72,8 +72,9 @@ class Availability(db.Model):
 
   id = db.Column(db.Integer, primary_key=True)
   doctor_id = db.Column(db.Integer, db.ForeignKey("doctor.user_id"), nullable=False)
-  start_time = db.Column(db.DateTime, nullable=False)
-  end_time = db.Column(db.DateTime, nullable=False)
+  date = db.Column(db.Date, nullable=False)
+  available = db.Column(db.Boolean, default=False, nullable=False)
+  start_time = db.Column(db.Time)
+  end_time = db.Column(db.Time)
 
-  # Relationships
   doctor = db.relationship("Doctor", back_populates="availabilities")

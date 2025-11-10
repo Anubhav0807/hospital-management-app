@@ -72,13 +72,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { Status } from '../../../utils'
 import api from '../../../api'
-
-const Status = {
-  BOOKED: "booked",
-  COMPLETED: "completed",
-  CANCELLED: "cancelled"
-}
 
 const activeTab = ref('upcoming')
 const appointments = ref([])

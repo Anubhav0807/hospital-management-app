@@ -18,6 +18,7 @@ app = Flask(__name__)
 # Register Blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(admin_bp)
+app.register_blueprint(doctor_bp)
 app.register_blueprint(appointments_bp)
 
 # Configure Database
