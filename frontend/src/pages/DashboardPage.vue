@@ -23,7 +23,12 @@ const tabs = {
     { label: 'Patients', component: 'PatientsTab', name: 'patients', icon: 'bi bi-people' },
     { label: 'Availability', component: 'AvailabilityTab', name: 'availability', icon: 'bi bi-clock' }
   ],
-  patient: []
+  patient: [
+    { label: 'Home', component: 'HomeTab', name: 'home', icon: 'bi bi-house-door' },
+    { label: 'Appointments', component: 'AppointmentsTab', name: 'appointments', icon: 'bi bi-calendar2-check' },
+    { label: 'Doctors', component: 'DoctorsTab', name: 'doctors', icon: 'bi bi-person-badge' },
+    { label: 'New Booking', component: 'BookingTab', name: 'new-booking', icon: 'bi bi-calendar-plus', hidden: true }
+  ]
 }
 
 onMounted(() => {

@@ -8,10 +8,20 @@ export function formatDate(dt) {
   return new Date(dt).toLocaleString('en-IN', {
     weekday: 'short',
     day: 'numeric',
+    month: 'short'
+  })
+}
+
+export function formatDateTime(dt) {
+  return new Date(dt).toLocaleString('en-IN', {
+    weekday: 'short',
+    day: 'numeric',
     month: 'short',
     hour: '2-digit',
     minute: '2-digit'
   })
+  .replace('am', 'AM')
+  .replace('pm', 'PM')
 }
 
 export function titleCase(word) {

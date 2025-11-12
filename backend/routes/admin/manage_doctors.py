@@ -147,10 +147,6 @@ def toggle_blacklist(user_id):
 @manage_doctors_bp.route("/departments", methods=["GET"])
 @jwt_required()
 def get_departments():
-  claims = get_jwt()
-  if claims.get("role", "").lower() != "admin":
-    return jsonify({"error": "Unauthorized"}), 403
-
   departments = Department.query.all()
   result = [
     {"id": d.id, "name": d.name, "description": d.description}

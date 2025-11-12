@@ -26,7 +26,7 @@
             <div>
               <h6 class="fw-semibold mb-1">{{ appt.patient_name }}</h6>
               <small class="text-muted">
-                {{ formatDate(appt.datetime) }} · {{ appt.reason || 'General Checkup' }}
+                {{ formatDateTime(appt.datetime) }} · {{ appt.reason || 'General Checkup' }}
               </small>
               <div class="mt-2">
                 <span :class="statusBadge(appt.status)">
@@ -66,7 +66,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Status, formatDate, titleCase } from '../../../utils'
+import { Status, formatDateTime, titleCase } from '../../../utils'
 import api from '../../../api'
 
 const appointments = ref([])
@@ -124,13 +124,5 @@ onMounted(fetchAppointments)
 .badge {
   font-size: 0.85rem;
   padding: 0.4em 0.6em;
-}
-
-.modal-content {
-  border-radius: 0.75rem;
-}
-
-textarea {
-  resize: none;
 }
 </style>

@@ -16,7 +16,6 @@
   margin-bottom: 1rem;
 }
 
-/* Input styling */
 .floating-input {
   width: 100%;
   height: 52px;
@@ -35,7 +34,6 @@
   box-shadow: 0 0 0 0.18rem rgba(13, 110, 253, 0.12);
 }
 
-/* Label perfectly centered */
 .floating-label {
   position: absolute;
   left: 1rem;
@@ -48,7 +46,6 @@
   background: transparent;
 }
 
-/* Float up - now less distance to avoid going beyond border */
 .floating-input:focus + .floating-label,
 .floating-input:not(:placeholder-shown) + .floating-label {
   top: -0.15rem;
@@ -60,6 +57,10 @@
   border-radius: 5px;
 }
 
+.floating-group textarea.floating-input {
+  height: auto !important;
+}
+
 .btn-primary {
   border-radius: 0.6rem;
   font-weight: 500;
@@ -67,11 +68,4 @@
 
 .alert {
   border-radius: 0.5rem;
-}
-
-@media (max-width: 420px) {
-  .reset-card {
-    padding: 1.5rem;
-    max-width: 94%;
-  }
 }

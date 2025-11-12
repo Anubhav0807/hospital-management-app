@@ -65,18 +65,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { formatDate } from '../../../utils'
 import api from '../../../api'
 
 const availability = ref([])
-
-function formatDate(dateStr) {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('en-IN', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short'
-  })
-}
 
 async function fetchAvailability() {
   try {

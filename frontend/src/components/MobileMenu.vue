@@ -9,7 +9,7 @@
           </button>
         </li>
 
-        <li v-for="tab in tabs" :key="tab.name" class="nav-item my-2">
+        <li v-for="tab in tabs.filter(t => !t.hidden)" :key="tab.name" class="nav-item my-2">
           <button
             class="btn w-100 text-start text-white fw-semibold mobile-link"
             :class="{ active: currentView === tab.component }"

@@ -45,7 +45,7 @@
                 'bg-danger': appt.status === Status.CANCELLED,
                 'bg-primary': appt.status === Status.BOOKED
               }">
-                {{ appt.status }}
+                {{ titleCase(appt.status) }}
               </span>
             </td>
             <td class="text-center">
@@ -72,7 +72,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Status } from '../../../utils'
+import { Status, titleCase } from '../../../utils'
 import api from '../../../api'
 
 const activeTab = ref('upcoming')
@@ -89,7 +89,7 @@ const filteredAppointments = computed(() => {
 
 async function markCompleted(appt) {
   try {
-    await api.put(`/appointment/${appt.id}`, { status: Status.COMPLETED })
+    await api.put(`/admin/appointment/${appt.id}`, { status: Status.COMPLETED })
     appt.status = Status.COMPLETED
   } catch (err) {
     console.error('API Error:', err.response.data?.error || err.message)
@@ -98,7 +98,7 @@ async function markCompleted(appt) {
 
 async function cancelAppointment(appt) {
   try {
-    await api.put(`/appointment/${appt.id}`, { status: Status.CANCELLED })
+    await api.put(`/admin/appointment/${appt.id}`, { status: Status.CANCELLED })
     appt.status = Status.CANCELLED
   } catch (err) {
     console.error('API Error:', err.response.data?.error || err.message)
@@ -107,7 +107,7 @@ async function cancelAppointment(appt) {
 
 onMounted(async () => {
   try {
-    const response = await api.get('/appointments')
+    const response = await api.get('/admin/appointments')
     appointments.value = response.data.appointments
   } catch (err) {
     console.error('API Error:', err.response.data?.error || err.message)

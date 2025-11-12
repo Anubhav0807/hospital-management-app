@@ -32,7 +32,7 @@
               <div>
                 <h6 class="fw-semibold mb-1">{{ appt.patient_name }}</h6>
                 <small class="text-muted">
-                  {{ formatDate(appt.datetime) }} · {{ appt.reason || 'General Checkup' }}
+                  {{ formatDateTime(appt.datetime) }} · {{ appt.reason || 'General Checkup' }}
                 </small>
               </div>
               <span :class="statusBadge(appt.status)">
@@ -52,7 +52,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { formatDate, titleCase } from '../../../utils';
+import { formatDateTime, titleCase } from '../../../utils';
 import api from '../../../api'
 
 const appointments = ref([])

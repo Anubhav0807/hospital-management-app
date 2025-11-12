@@ -19,7 +19,7 @@ app = Flask(__name__)
 app.register_blueprint(auth_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(doctor_bp)
-app.register_blueprint(appointments_bp)
+app.register_blueprint(patient_bp)
 
 # Configure Database
 database_url = os.getenv("DATABASE_URL")

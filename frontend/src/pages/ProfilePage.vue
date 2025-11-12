@@ -7,7 +7,7 @@
         Profile
       </h2>
       <div>
-        <button class="btn btn-secondary me-2" @click="goBack">
+        <button class="btn btn-secondary me-2" @click="router.back">
           <i class="bi bi-arrow-left"></i> Back
         </button>
         <button class="btn btn-primary" @click="updateProfile">
@@ -80,10 +80,6 @@ async function updateProfile() {
     console.error('API Error:', err.response.data?.error || err.message)
     alert('Error updating profile.')
   }
-}
-
-function goBack() {
-  router.push('/')
 }
 
 onMounted(loadProfile)

@@ -82,7 +82,7 @@
                 <div class="card-body">
                   <div class="d-flex justify-content-between align-items-start mb-2">
                     <div>
-                      <strong>{{ formatDate(record.date) }}</strong>
+                      <strong>{{ formatDateTime(record.date) }}</strong>
                       <small class="text-muted d-block">
                         Appointment ID: {{ record.appointment_id }}
                       </small>
@@ -135,7 +135,7 @@
             <p><strong>Gender:</strong> {{ titleCase(selectedPatient.gender) }}</p>
             <p><strong>Phone:</strong> {{ selectedPatient.phone }}</p>
             <p><strong>Email:</strong> {{ selectedPatient.email }}</p>
-            <p><strong>Last Visit:</strong> {{ formatDate(selectedPatient.last_visit) || 'N/A' }}</p>
+            <p><strong>Last Visit:</strong> {{ formatDateTime(selectedPatient.last_visit) || 'N/A' }}</p>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -148,7 +148,7 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
-import { formatDate, titleCase } from '../../../utils'
+import { formatDateTime, titleCase } from '../../../utils'
 import { Modal } from 'bootstrap'
 import api from '../../../api'
 

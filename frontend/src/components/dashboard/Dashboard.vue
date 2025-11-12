@@ -46,7 +46,14 @@ if (props.user.role === 'admin') {
     HomeTab: defineAsyncComponent(() => import('./doctor_tabs/HomeTab.vue')),
     AppointmentsTab: defineAsyncComponent(() => import('./doctor_tabs/AppointmentsTab.vue')),
     PatientsTab: defineAsyncComponent(() => import('./doctor_tabs/PatientsTab.vue')),
-    AvailabilityTab: defineAsyncComponent(() => import('./doctor_tabs/AvailabilityTab.vue')),
+    AvailabilityTab: defineAsyncComponent(() => import('./doctor_tabs/AvailabilityTab.vue'))
+  }
+} else if (props.user.role === 'patient') {
+  components = {
+    HomeTab: defineAsyncComponent(() => import('./patient_tabs/HomeTab.vue')),
+    AppointmentsTab: defineAsyncComponent(() => import('./patient_tabs/AppointmentsTab.vue')),
+    DoctorsTab: defineAsyncComponent(() => import('./patient_tabs/DoctorsTab.vue')),
+    BookingTab: defineAsyncComponent(() => import('./patient_tabs/BookingTab.vue'))
   }
 }
 

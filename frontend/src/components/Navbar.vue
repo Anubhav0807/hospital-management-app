@@ -23,7 +23,7 @@
       <!-- Desktop Menu -->
       <div class="collapse navbar-collapse d-none d-lg-flex justify-content-between">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0 d-flex align-items-center">
-          <li v-for="tab in tabs" :key="tab.name" class="nav-item mx-2">
+          <li v-for="tab in tabs.filter(t => !t.hidden)" :key="tab.name" class="nav-item mx-2">
             <button
               class="btn nav-link-custom text-white fw-semibold position-relative px-1 mx-1"
               :class="{ active: currentView === tab.component }"
