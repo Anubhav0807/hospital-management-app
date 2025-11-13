@@ -17,5 +17,5 @@ all public names (those not starting with an underscore) are imported.
 """
 __all__ = [
   "db", "User", "Doctor", "Patient", "RoleEnum", "GenderEnum",
-  "Availability", "Appointment", "Treatment", "Department", "StatusEnum"
+  "Availability", "Appointment", "Treatment", "Department", "StatusEnum", "VisitTypeEnum"
 ]

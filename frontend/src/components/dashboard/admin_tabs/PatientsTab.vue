@@ -2,16 +2,16 @@
   <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h4>Manage Patients</h4>
+
+      <!-- Refresh button -->
+      <button class="btn btn-outline-primary btn-sm" @click="fetchPatients">
+        <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+      </button>
     </div>
 
     <!-- Search -->
     <div class="mb-3">
-      <input
-        v-model="searchQuery"
-        type="text"
-        class="form-control"
-        placeholder="Search by name, ID, or contact..."
-      />
+      <input v-model="searchQuery" type="text" class="form-control" placeholder="Search by name, ID, or contact..." />
     </div>
 
     <!-- Patients Table -->
@@ -26,7 +26,7 @@
             <th>Contact</th>
             <th>Address</th>
             <th>Status</th>
-            <th>Actions</th>
+            <th style="width: 150px">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -38,28 +38,27 @@
             <td>{{ patient.contact }}</td>
             <td>{{ patient.address }}</td>
             <td>
-              <span
-                class="badge"
-                :class="patient.blacklisted ? 'bg-danger' : 'bg-success'"
-              >
+              <span class="badge" :class="patient.blacklisted ? 'bg-danger' : 'bg-success'">
                 {{ patient.blacklisted ? 'Blacklisted' : 'Active' }}
               </span>
             </td>
             <td class="text-center">
-              <button
-                class="btn btn-sm btn-outline-warning me-2"
-                @click="toggleBlacklist(patient)"
-              >
-                <i
-                  :class="patient.blacklisted ? 'bi bi-person-check' : 'bi bi-person-fill-slash'"
-                ></i>
+
+              <!-- NEW: History Button -->
+              <button class="btn btn-sm btn-outline-info me-2" @click="openHistory(patient.id)">
+                <i class="bi bi-clock-history"></i>
               </button>
-              <button
-                class="btn btn-sm btn-outline-danger"
-                @click="removePatient(patient.id)"
-              >
+
+              <!-- Toggle Blacklist -->
+              <button class="btn btn-sm btn-outline-warning me-2" @click="toggleBlacklist(patient)">
+                <i :class="patient.blacklisted ? 'bi bi-person-check' : 'bi bi-person-fill-slash'"></i>
+              </button>
+
+              <!-- Remove -->
+              <button class="btn btn-sm btn-outline-danger" @click="removePatient(patient.id)">
                 <i class="bi bi-trash"></i>
               </button>
+
             </td>
           </tr>
         </tbody>
@@ -75,7 +74,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import api from '../../../api.js'
+
+const router = useRouter()
 
 const patients = ref([])
 const searchQuery = ref('')
@@ -90,7 +92,6 @@ const filteredPatients = computed(() => {
   )
 })
 
-// ✅ Fetch patients from API
 async function fetchPatients() {
   try {
     const res = await api.get('/admin/patients')
@@ -122,12 +123,15 @@ async function toggleBlacklist(patient) {
   }
 }
 
+function openHistory(patientId) {
+  router.push({
+    path: '/dashboard',
+    query: {
+      tab: 'history',
+      patient_id: patientId
+    }
+  })
+}
+
 onMounted(fetchPatients)
 </script>
-
-<style scoped>
-.table td,
-.table th {
-  vertical-align: middle;
-}
-</style>

@@ -57,6 +57,9 @@ if (props.user.role === 'admin') {
   }
 }
 
+// Common Medical History Tab
+components.HistoryTab = defineAsyncComponent(() => import('./HistoryTab.vue'))
+
 const tabsWithoutHome = computed(() => props.tabs.slice(1))
 
 const currentView = ref(null)

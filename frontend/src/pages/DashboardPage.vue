@@ -15,19 +15,22 @@ const tabs = {
     { label: 'Home', component: 'HomeTab', name: 'home', icon: 'bi bi-house' },
     { label: 'Doctors', component: 'DoctorsTab', name: 'doctors', icon: 'bi bi-person-badge' },
     { label: 'Patients', component: 'PatientsTab', name: 'patients', icon: 'bi bi-people' },
-    { label: 'Appointments', component: 'AppointmentsTab', name: 'appointments', icon: 'bi bi-calendar-check' }
+    { label: 'Appointments', component: 'AppointmentsTab', name: 'appointments', icon: 'bi bi-calendar-check' },
+    { label: 'History', component: 'HistoryTab', name: 'history', icon: 'bi bi-clock-history', hidden: true }
   ],
   doctor: [
     { label: 'Home', component: 'HomeTab', name: 'home', icon: 'bi bi-house-door' },
     { label: 'Appointments', component: 'AppointmentsTab', name: 'appointments', icon: 'bi bi-calendar2-check' },
     { label: 'Patients', component: 'PatientsTab', name: 'patients', icon: 'bi bi-people' },
-    { label: 'Availability', component: 'AvailabilityTab', name: 'availability', icon: 'bi bi-clock' }
+    { label: 'Availability', component: 'AvailabilityTab', name: 'availability', icon: 'bi bi-clock' },
+    { label: 'History', component: 'HistoryTab', name: 'history', icon: 'bi bi-clock-history', hidden: true }
   ],
   patient: [
     { label: 'Home', component: 'HomeTab', name: 'home', icon: 'bi bi-house-door' },
     { label: 'Appointments', component: 'AppointmentsTab', name: 'appointments', icon: 'bi bi-calendar2-check' },
     { label: 'Doctors', component: 'DoctorsTab', name: 'doctors', icon: 'bi bi-person-badge' },
-    { label: 'New Booking', component: 'BookingTab', name: 'new-booking', icon: 'bi bi-calendar-plus', hidden: true }
+    { label: 'New Booking', component: 'BookingTab', name: 'new-booking', icon: 'bi bi-calendar-plus', hidden: true },
+    { label: 'History', component: 'HistoryTab', name: 'history', icon: 'bi bi-clock-history' }
   ]
 }
 

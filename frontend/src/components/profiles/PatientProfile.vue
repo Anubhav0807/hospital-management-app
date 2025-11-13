@@ -19,11 +19,6 @@
     <label class="form-label">Address</label>
     <textarea v-model="user.patient_profile.address" class="form-control" rows="2"></textarea>
   </div>
-
-  <div class="mb-3">
-    <label class="form-label">Medical History</label>
-    <textarea v-model="user.patient_profile.medical_history" class="form-control" rows="3"></textarea>
-  </div>
 </template>
 
 <script setup>

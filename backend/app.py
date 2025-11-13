@@ -20,6 +20,7 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(doctor_bp)
 app.register_blueprint(patient_bp)
+app.register_blueprint(history_bp)
 
 # Configure Database
 database_url = os.getenv("DATABASE_URL")

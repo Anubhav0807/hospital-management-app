@@ -61,7 +61,6 @@ class Patient(db.Model):
   age = db.Column(db.Integer, nullable=False)
   gender = db.Column(db.Enum(GenderEnum), nullable=False)
   address = db.Column(db.Text, nullable=False)
-  medical_history = db.Column(db.Text)
   blacklisted = db.Column(db.Boolean, default=False, nullable=False)
 
   # Relationships

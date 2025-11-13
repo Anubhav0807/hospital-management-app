@@ -121,18 +121,6 @@
           <label for="address" class="floating-label">Address</label>
         </div>
 
-        <!-- Medical History -->
-        <div class="floating-group mb-3">
-          <textarea
-            id="medical_history"
-            v-model="medical_history"
-            class="form-control floating-input"
-            placeholder=" "
-            rows="3"
-          ></textarea>
-          <label for="medical_history" class="floating-label">Medical History</label>
-        </div>
-
         <!-- Error -->
         <div v-if="errorMessage" class="alert alert-danger py-2 small mb-3">
           {{ errorMessage }}
@@ -168,7 +156,6 @@ const contact_number = ref("");
 const age = ref("");
 const gender = ref("");
 const address = ref("");
-const medical_history = ref("");
 const loading = ref(false);
 const errorMessage = ref("");
 const router = useRouter();
@@ -186,7 +173,6 @@ const handleRegister = async () => {
       age: age.value,
       gender: gender.value,
       address: address.value,
-      medical_history: medical_history.value || null,
     };
 
     const response = await api.post("/auth/register", payload, {

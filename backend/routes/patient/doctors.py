@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
-from models import User, Doctor, Department, Availability
-from datetime import date, timedelta
+from models import User, Doctor, Department, Availability, Appointment, StatusEnum
+from datetime import date, datetime, timedelta
 
 doctors_bp = Blueprint("doctors_bp", __name__)
 
@@ -109,3 +109,37 @@ def get_departments():
   ]
 
   return jsonify({"departments": result}), 200
+
+@doctors_bp.route("/doctor-bookings/<int:doctor_id>", methods=["GET"])
+@jwt_required()
+def get_doctor_bookings(doctor_id):
+  start_date = request.args.get("start_date")
+  end_date = request.args.get("end_date")
+
+  try:
+    if start_date:
+      sd = datetime.fromisoformat(start_date).date()
+    else:
+      sd = None
+    if end_date:
+      ed = datetime.fromisoformat(end_date).date()
+    else:
+      ed = None
+  except ValueError:
+    return jsonify({"error": "Invalid date format, use YYYY-MM-DD"}), 400
+
+  q = Appointment.query.filter(
+    Appointment.doctor_id == doctor_id,
+    Appointment.status == StatusEnum.BOOKED
+  )
+
+  if sd:
+    q = q.filter(Appointment.appointment_datetime >= datetime.combine(sd, datetime.min.time()))
+  if ed:
+    q = q.filter(Appointment.appointment_datetime <= datetime.combine(ed, datetime.max.time()))
+
+  appts = q.all()
+
+  datetimes = [a.appointment_datetime.isoformat() for a in appts]
+
+  return jsonify({"booked_datetimes": datetimes})

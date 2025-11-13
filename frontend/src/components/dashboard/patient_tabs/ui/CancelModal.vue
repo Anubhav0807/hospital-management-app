@@ -50,11 +50,11 @@ function show() {
 async function confirmCancel() {
   if (!props.appointment) return
   try {
-    await api.delete(`/patient/appointments/${props.appointment.id}`)
+    await api.patch(`/patient/appointment/${props.appointment.id}`)
     cancelModal.hide()
     emit('cancelled')
   } catch (err) {
-    console.error('Error cancelling appointment:', err)
+    console.error('API Error:', err.response.data?.error || err.message)
   }
 }
 

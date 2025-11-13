@@ -59,21 +59,49 @@ def get_appointments():
     "patient_count": patient_count
   }), 200
 
-@appointments_bp.route("/appointments/<int:appointment_id>", methods=["PATCH"])
+@appointments_bp.route("/appointment/<int:appt_id>", methods=["PATCH"])
 @jwt_required()
-def update_appointment_status(appointment_id):
+def cancel_appointment(appt_id):
   claims = get_jwt()
   if claims.get("role", "").lower() not in ("admin", "doctor"):
     return jsonify({"error": "Unauthorized"}), 403
 
-  data = request.get_json() or {}
-  status = StatusEnum(data.get("status"))
+  user_id = int(get_jwt_identity())
+  appt = Appointment.query.get(appt_id)
+  if not appt or appt.doctor_id != user_id:
+    return jsonify({"error": "Appointment not found"}), 404
 
-  if status not in [StatusEnum.COMPLETED, StatusEnum.CANCELLED]:
-    return jsonify({"error": "Invalid status"}), 400
-
-  appointment = Appointment.query.get_or_404(appointment_id)
-  appointment.status = status
+  appt.status = StatusEnum.CANCELLED
   db.session.commit()
 
-  return jsonify({"message": f"Appointment marked as {status}."}), 200
+  return jsonify({"message": "Appointment cancelled successfully"})
+
+@appointments_bp.route("/treatment", methods=["POST"])
+@jwt_required()
+def create_treatment():
+  data = request.get_json()
+  appointment_id = data.get("appointment_id")
+  visit_type = data.get("visit_type")
+  diagnosis = data.get("diagnosis")
+  test_done = data.get("test_done")
+  prescription = data.get("prescription")
+  notes = data.get("notes")
+
+  appt = Appointment.query.get(appointment_id)
+  if not appt:
+    return jsonify({"error": "Appointment not found"}), 404
+
+  treatment = Treatment(
+    appointment_id=appointment_id,
+    visit_type=VisitTypeEnum(visit_type),
+    diagnosis=diagnosis,
+    test_done=test_done,
+    prescription=prescription,
+    notes=notes,
+  )
+  appt.status = StatusEnum.COMPLETED
+
+  db.session.add(treatment)
+  db.session.commit()
+
+  return jsonify({"message": "Treatment saved and appointment completed"})

@@ -4,6 +4,11 @@ export const Status = {
   CANCELLED: "cancelled"
 }
 
+export const VisitType = {
+  ONLINE: "online",
+  OFFLINE: "offline"
+}
+
 export function formatDate(dt) {
   return new Date(dt).toLocaleString('en-IN', {
     weekday: 'short',

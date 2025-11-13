@@ -13,9 +13,7 @@
 
     <!-- Step 1: Department Selection -->
     <div v-if="!doctorId && !doctors.length" class="card shadow-sm border-0 mb-4">
-      <div class="card-header bg-light fw-semibold">
-        Choose Department
-      </div>
+      <div class="card-header bg-light fw-semibold">Choose Department</div>
       <div class="card-body">
         <p class="text-muted small mb-3">Select the department to see available doctors.</p>
 
@@ -30,9 +28,7 @@
 
     <!-- Step 2: Doctor Selection -->
     <div v-else-if="!doctorId && doctors.length" class="card shadow-sm border-0 mb-4">
-      <div class="card-header bg-light fw-semibold">
-        Choose Doctor
-      </div>
+      <div class="card-header bg-light fw-semibold">Choose Doctor</div>
       <div class="card-body">
         <div class="row g-3">
           <div v-for="doc in doctors" :key="doc.id" class="col-md-4 col-sm-6">
@@ -46,11 +42,6 @@
               </p>
             </div>
           </div>
-        </div>
-
-        <div v-if="!doctors.length" class="text-center text-muted py-4">
-          <i class="bi bi-people fs-1 mb-2"></i>
-          <p>No doctors available in this department.</p>
         </div>
       </div>
     </div>
@@ -94,26 +85,22 @@
 
     <!-- Step 5: Select Time -->
     <div v-if="selectedDate" id="select-time" class="time-slot-section my-5">
-      <!-- Header -->
       <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
         <h5 class="fw-bold mb-1">
           <i class="bi bi-clock-history me-2 text-primary"></i>
           Select Time Slot
         </h5>
-        <span class="text-muted small">
-          For {{ formatDate(selectedDate) }}
-        </span>
+        <span class="text-muted small">For {{ formatDate(selectedDate) }}</span>
       </div>
 
-      <!-- Time Slots -->
       <div class="time-slot-container">
-        <div v-for="slot in timeSlots" :key="slot" class="time-slot" :class="{ selected: selectedTime === slot }"
-          @click="selectedTime = slot">
-          <span>{{ formatTimeTo12Hour(slot) }}</span>
+        <div v-for="slotObj in timeSlots" :key="slotObj.time" class="time-slot"
+          :class="{ selected: selectedTime === slotObj.time, disabled: slotObj.disabled }"
+          @click="!slotObj.disabled && (selectedTime = slotObj.time)">
+          <span>{{ formatTimeTo12Hour(slotObj.time) }}</span>
         </div>
       </div>
 
-      <!-- Confirm Button -->
       <div class="text-center mt-4">
         <button class="btn btn-primary btn-lg rounded-pill px-5 py-2 shadow-sm" :disabled="!selectedTime"
           @click="confirmBooking">
@@ -149,6 +136,29 @@ const departments = ref([])
 const doctors = ref([])
 const availability = ref([])
 const timeSlots = ref([])
+const bookedByDate = ref({})
+
+function formatTimeTo12Hour(time) {
+  if (!time) return ''
+  const [hour, minute] = time.split(':').map(Number)
+  const period = hour >= 12 ? 'PM' : 'AM'
+  const adjustedHour = hour % 12 || 12
+  return `${adjustedHour}:${minute.toString().padStart(2, '0')} ${period}`
+}
+
+function minutesOfDay(h, m) {
+  return h * 60 + m
+}
+
+async function fetchBookedSlotsForRange(doctorId, startDateStr, endDateStr) {
+  try {
+    const res = await api.get(`/patient/doctor-bookings/${doctorId}?start_date=${startDateStr}&end_date=${endDateStr}`)
+    return res.data.booked_datetimes || []
+  } catch (err) {
+    console.error('API Error:', err.response?.data || err.message)
+    return []
+  }
+}
 
 async function loadDepartments() {
   try {
@@ -182,38 +192,64 @@ async function loadAvailability() {
   try {
     const res = await api.get(`/patient/doctor-availability/${doctorId.value}?days=7`)
     availability.value = res.data.availability
+
+    if (availability.value.length) {
+      const dates = availability.value.map(s => s.date).sort()
+      const startDateStr = dates[0]
+      const endDateStr = dates[dates.length - 1]
+
+      const bookedDatetimes = await fetchBookedSlotsForRange(doctorId.value, startDateStr, endDateStr)
+
+      const map = {}
+      for (const dtStr of bookedDatetimes) {
+        const d = new Date(dtStr)
+        const dateKey = d.toISOString().slice(0, 10)
+        const startMin = minutesOfDay(d.getHours(), d.getMinutes())
+        const endMin = startMin + 30
+        if (!map[dateKey]) map[dateKey] = []
+        map[dateKey].push([startMin, endMin])
+      }
+      bookedByDate.value = map
+    }
+
     setTimeout(() => {
-      document.getElementById('availability').scrollIntoView();
+      document.getElementById('availability').scrollIntoView()
     }, 100)
   } catch (err) {
     console.error('API Error:', err.response.data?.error || err.message)
   }
 }
 
-function generateTimeSlots(start, end) {
+function generateTimeSlots(start, end, dateStr) {
   const slots = []
   const [startH, startM] = start.split(':').map(Number)
   const [endH, endM] = end.split(':').map(Number)
-  let current = new Date()
+  const current = new Date(dateStr)
   current.setHours(startH, startM, 0, 0)
-  const endTime = new Date()
+  const endTime = new Date(dateStr)
   endTime.setHours(endH, endM, 0, 0)
 
+  const booked = bookedByDate.value[dateStr] || []
+
   while (current < endTime) {
-    const h = String(current.getHours()).padStart(2, '0')
-    const m = String(current.getMinutes()).padStart(2, '0')
-    slots.push(`${h}:${m}`)
+    const hh = String(current.getHours()).padStart(2, '0')
+    const mm = String(current.getMinutes()).padStart(2, '0')
+    const tStart = minutesOfDay(current.getHours(), current.getMinutes())
+    const tEnd = tStart + 30
+    let disabled = false
+
+    for (const [bStart, bEnd] of booked) {
+      if (tStart < bEnd && tEnd > bStart) {
+        disabled = true
+        break
+      }
+    }
+
+    slots.push({ time: `${hh}:${mm}`, disabled })
     current.setMinutes(current.getMinutes() + 30)
   }
-  return slots
-}
 
-function formatTimeTo12Hour(time) {
-  if (!time) return ''
-  const [hour, minute] = time.split(':').map(Number)
-  const period = hour >= 12 ? 'PM' : 'AM'
-  const adjustedHour = hour % 12 || 12
-  return `${adjustedHour}:${minute.toString().padStart(2, '0')} ${period}`
+  return slots
 }
 
 function selectDate(slot) {
@@ -221,7 +257,7 @@ function selectDate(slot) {
   selectedTime.value = null
 
   if (slot.available && slot.start_time && slot.end_time) {
-    timeSlots.value = generateTimeSlots(slot.start_time, slot.end_time)
+    timeSlots.value = generateTimeSlots(slot.start_time, slot.end_time, slot.date)
   } else {
     timeSlots.value = []
   }
@@ -241,30 +277,22 @@ async function confirmBooking() {
 
   try {
     if (reschedule.value) {
-      await api.put(`/patient/appointment/${apptId.value}`, {
-        datetime
-      })
+      await api.put(`/patient/appointment/${apptId.value}`, { datetime })
       alert('Appointment rescheduled successfully!')
     } else {
-      await api.post('/patient/appointments', {
-        doctor_id: doctorId.value,
-        datetime
-      })
+      await api.post('/patient/appointments', { doctor_id: doctorId.value, datetime })
       alert('Appointment booked successfully!')
     }
     router.push({ path: '/dashboard', query: { tab: 'appointments' } })
   } catch (err) {
     console.error('API Error:', err.response.data?.error || err.message)
-    alert('Failed to book appointment.')
+    alert(err.response.data?.error || 'Failed to book appointment.')
   }
 }
 
 onMounted(() => {
-  if (!doctorId.value) {
-    loadDepartments()
-  } else {
-    loadAvailability()
-  }
+  if (!doctorId.value) loadDepartments()
+  else loadAvailability()
 })
 </script>
 
@@ -396,6 +424,17 @@ onMounted(() => {
   border-color: #0d6efd;
   transform: scale(1.05);
   box-shadow: 0 6px 14px rgba(13, 110, 253, 0.3);
+}
+
+.time-slot.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+  background: #f8f9fa;
+  color: #8a8a8a;
+  border-color: #e9ecef;
+  transform: none;
+  box-shadow: none;
 }
 
 .time-slot:active {

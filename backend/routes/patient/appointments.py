@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from datetime import datetime
+from datetime import datetime, timedelta
 from models import db, User, Appointment, Availability, StatusEnum
 
 appointments_bp = Blueprint("appointments_bp", __name__)
@@ -71,6 +71,38 @@ def book_appointment():
   if not availability or not availability.available:
     return jsonify({"error": "Doctor not available on that date"}), 409
 
+  # Define 30-minute slot range
+  slot_start = appt_datetime
+  slot_end = appt_datetime.replace(second=59) + timedelta(minutes=29)
+
+  # Check doctor conflict
+  doctor_conflict = (
+    Appointment.query
+    .filter(
+      Appointment.doctor_id == doctor_id,
+      Appointment.status == StatusEnum.BOOKED,
+      Appointment.appointment_datetime >= slot_start,
+      Appointment.appointment_datetime <= slot_end
+    )
+    .first()
+  )
+  if doctor_conflict:
+    return jsonify({"error": "Doctor already has an appointment during this time slot"}), 409
+
+  # Check patient conflict
+  patient_conflict = (
+    Appointment.query
+    .filter(
+      Appointment.patient_id == user_id,
+      Appointment.status == StatusEnum.BOOKED,
+      Appointment.appointment_datetime >= slot_start,
+      Appointment.appointment_datetime <= slot_end
+    )
+    .first()
+  )
+  if patient_conflict:
+    return jsonify({"error": "You already have another appointment during this time slot"}), 409
+
   new_appt = Appointment(
     patient_id=user_id,
     doctor_id=doctor_id,
@@ -104,7 +136,6 @@ def reschedule_appointment(appt_id):
 
   appt = Appointment.query.get(appt_id)
   if not appt or appt.patient_id != user_id:
-    print(appt.patient_id, user_id)
     return jsonify({"error": "Appointment not found"}), 404
 
   # Check doctor availability
@@ -113,14 +144,48 @@ def reschedule_appointment(appt_id):
   if not availability or not availability.available:
     return jsonify({"error": "Doctor not available on that date"}), 409
 
-  # Update appointment
+  # Define 30-minute slot range
+  slot_start = new_dt
+  slot_end = new_dt.replace(second=59) + timedelta(minutes=29)
+
+  # Check doctor conflict (excluding current appt)
+  doctor_conflict = (
+    Appointment.query
+    .filter(
+      Appointment.doctor_id == appt.doctor_id,
+      Appointment.id != appt.id,
+      Appointment.status == StatusEnum.BOOKED,
+      Appointment.appointment_datetime >= slot_start,
+      Appointment.appointment_datetime <= slot_end
+    )
+    .first()
+  )
+  if doctor_conflict:
+    return jsonify({"error": "Doctor already has an appointment during this time slot"}), 409
+
+  # Check patient conflict (excluding current appt)
+  patient_conflict = (
+    Appointment.query
+    .filter(
+      Appointment.patient_id == user_id,
+      Appointment.id != appt.id,
+      Appointment.status == StatusEnum.BOOKED,
+      Appointment.appointment_datetime >= slot_start,
+      Appointment.appointment_datetime <= slot_end
+    )
+    .first()
+  )
+  if patient_conflict:
+    return jsonify({"error": "You already have another appointment during this time slot"}), 409
+
+  # --- Update appointment ---
   appt.appointment_datetime = new_dt
   appt.status = StatusEnum.BOOKED
   db.session.commit()
 
   return jsonify({"message": "Appointment rescheduled successfully"})
 
-@appointments_bp.route("/appointments/<int:appt_id>", methods=["DELETE"])
+@appointments_bp.route("/appointment/<int:appt_id>", methods=["PATCH"])
 @jwt_required()
 def cancel_appointment(appt_id):
   user_id = int(get_jwt_identity())

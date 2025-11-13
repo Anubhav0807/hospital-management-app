@@ -64,7 +64,6 @@ def register_patient():
   age = data["age"]
   gender = data["gender"].lower()
   address = data["address"]
-  medical_history = data.get("medical_history", "")
 
   # Validate gender
   if gender not in ["male", "female", "other"]:
@@ -93,8 +92,7 @@ def register_patient():
     user_id=new_user.id,
     age=age,
     gender=GenderEnum(gender),
-    address=address,
-    medical_history=medical_history
+    address=address
   )
   db.session.add(patient_profile)
   db.session.commit()
@@ -216,7 +214,6 @@ def get_profile():
       "age": patient.age,
       "gender": patient.gender.value,
       "address": patient.address,
-      "medical_history": patient.medical_history,
       "blacklisted": patient.blacklisted,
     }
 
@@ -264,8 +261,6 @@ def update_profile():
       pat.gender = GenderEnum(pat_data["gender"])
     if "address" in pat_data:
       pat.address = pat_data["address"]
-    if "medical_history" in pat_data:
-      pat.medical_history = pat_data["medical_history"]
 
   db.session.commit()
   return jsonify({"message": "Profile updated successfully"}), 200

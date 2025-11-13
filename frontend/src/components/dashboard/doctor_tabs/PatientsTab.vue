@@ -1,5 +1,6 @@
 <template>
   <div class="patients-tab container py-4">
+
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h4 class="fw-semibold text-primary mb-0">
@@ -42,74 +43,25 @@
 
             <!-- Action Buttons -->
             <div class="d-flex gap-2">
+              <!-- NEW: Navigate to History -->
               <button
-                class="btn btn-outline-primary btn-sm"
-                @click="toggleHistory(patient)"
+                class="btn btn-outline-info btn-sm"
+                title="Medical History"
+                @click="openHistory(patient.id)"
               >
-                <i
-                  class="bi"
-                  :class="expandedPatient === patient.id ? 'bi-chevron-up' : 'bi-chevron-down'"
-                ></i>
+                <i class="bi bi-clock-history"></i>
               </button>
+
+              <!-- Details Button -->
               <button
                 class="btn btn-outline-secondary btn-sm"
                 @click="openDetails(patient)"
               >
-                <i class="bi bi-eye me-1"></i>
-                Details
+                <i class="bi bi-eye"></i>
               </button>
             </div>
           </div>
         </div>
-
-        <!-- Collapsible Medical History -->
-        <transition name="fade">
-          <div v-if="expandedPatient === patient.id" class="border-top p-3 bg-light">
-            <div v-if="loadingHistory[patient.id]" class="text-center py-3">
-              <div class="spinner-border text-primary" role="status"></div>
-            </div>
-
-            <div v-else-if="patientHistory[patient.id]?.length">
-              <h6 class="fw-semibold text-secondary mb-3">
-                <i class="bi bi-journal-medical me-2"></i>Medical History
-              </h6>
-
-              <div
-                v-for="(record, idx) in patientHistory[patient.id]"
-                :key="idx"
-                class="card border-0 shadow-sm mb-2"
-              >
-                <div class="card-body">
-                  <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div>
-                      <strong>{{ formatDateTime(record.date) }}</strong>
-                      <small class="text-muted d-block">
-                        Appointment ID: {{ record.appointment_id }}
-                      </small>
-                    </div>
-                    <span :class="statusBadge(record.status)">{{ titleCase(record.status) }}</span>
-                  </div>
-
-                  <div class="row g-2">
-                    <div class="col-md-6">
-                      <h6 class="fw-semibold text-secondary mb-1">Diagnosis</h6>
-                      <p class="mb-0 small">{{ record.diagnosis || '—' }}</p>
-                    </div>
-                    <div class="col-md-6">
-                      <h6 class="fw-semibold text-secondary mb-1">Prescription</h6>
-                      <p class="mb-0 small">{{ record.prescription || '—' }}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div v-else class="text-center text-muted py-3">
-              <i class="bi bi-folder2-open fs-4 d-block mb-1"></i>
-              No history found for this patient.
-            </div>
-          </div>
-        </transition>
       </div>
     </div>
 
@@ -143,6 +95,7 @@
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -150,67 +103,46 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { formatDateTime, titleCase } from '../../../utils'
 import { Modal } from 'bootstrap'
+import { useRouter } from 'vue-router'
 import api from '../../../api'
+
+const router = useRouter()
 
 const patients = ref([])
 const search = ref('')
 const selectedPatient = ref(null)
 const detailsModal = ref(null)
-const expandedPatient = ref(null)
-const patientHistory = ref({})
-const loadingHistory = ref({})
 let modalInstance = null
 
+// Computed list after search filter
 const filteredPatients = computed(() => {
-  const query = search.value.trim().toLowerCase()
-  if (!query) return patients.value
-  return patients.value.filter(p => p.name.toLowerCase().includes(query))
+  const q = search.value.trim().toLowerCase()
+  if (!q) return patients.value
+  return patients.value.filter(p => p.name.toLowerCase().includes(q))
 })
 
-function statusBadge(status) {
-  switch (status?.toLowerCase()) {
-    case 'completed':
-      return 'badge bg-success'
-    case 'cancelled':
-      return 'badge bg-danger'
-    default:
-      return 'badge bg-secondary'
-  }
-}
-
+// Fetch doctor's patients
 async function fetchPatients() {
   try {
     const res = await api.get('/doctor/patients')
     patients.value = res.data.patients
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    console.error('API Error:', err.response?.data?.error || err.message)
   }
 }
 
-async function toggleHistory(patient) {
-  if (expandedPatient.value === patient.id) {
-    expandedPatient.value = null
-    return
-  }
-
-  expandedPatient.value = patient.id
-
-  // Only load history once
-  if (patientHistory.value[patient.id]) return
-
-  loadingHistory.value[patient.id] = true
-  try {
-    const res = await api.get(`/doctor/patient/${patient.id}/history`)
-    patientHistory.value[patient.id] = res.data.history || []
-  } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
-    patientHistory.value[patient.id] = []
-  } finally {
-    loadingHistory.value[patient.id] = false
-  }
+// Navigate to full medical history
+function openHistory(patientId) {
+  router.push({
+    path: '/dashboard',
+    query: {
+      tab: 'history',
+      patient_id: patientId
+    }
+  })
 }
 
-// Modal
+// Modal for patient details
 function openDetails(patient) {
   selectedPatient.value = patient
   nextTick(() => {
@@ -235,16 +167,5 @@ onMounted(fetchPatients)
 
 .modal-content {
   border-radius: 0.75rem;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: all 0.25s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(-5px);
 }
 </style>

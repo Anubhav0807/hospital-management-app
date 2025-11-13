@@ -6,6 +6,10 @@ class StatusEnum(enum.Enum):
   COMPLETED = "completed"
   CANCELLED = "cancelled"
 
+class VisitTypeEnum(enum.Enum):
+  ONLINE = "online"
+  OFFLINE = "offline"
+
 class Appointment(db.Model):
   __tablename__ = "appointment"
   id = db.Column(db.Integer, autoincrement=True, primary_key=True)
@@ -23,7 +27,9 @@ class Treatment(db.Model):
   __tablename__ = "treatment"
   id = db.Column(db.Integer, autoincrement=True, primary_key=True)
   appointment_id = db.Column(db.Integer, db.ForeignKey("appointment.id"), nullable=False)
+  visit_type = db.Column(db.Enum(VisitTypeEnum), nullable=False)
   diagnosis = db.Column(db.String(128), nullable=False)
+  test_done = db.Column(db.String(128))
   prescription = db.Column(db.Text)
   notes = db.Column(db.Text)
 
