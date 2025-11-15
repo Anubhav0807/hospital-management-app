@@ -1,7 +1,9 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
-from models import User, Doctor, Department, Availability, Appointment, StatusEnum
 from datetime import date, datetime, timedelta
+
+from models import User, Doctor, Department, Availability, Appointment, StatusEnum
+from routes import cache
 
 doctors_bp = Blueprint("doctors_bp", __name__)
 
@@ -48,6 +50,7 @@ def find_doctor_availability(doctor_id, days=7):
 
 @doctors_bp.route("/doctors", methods=["GET"])
 @jwt_required()
+@cache.cached(timeout=300, query_string=True)
 def get_doctors():
   department_id = request.args.get("department_id")
 
@@ -85,6 +88,7 @@ def get_doctors():
 
 @doctors_bp.route("/doctor-availability/<int:doctor_id>", methods=["GET"])
 @jwt_required()
+@cache.cached(timeout=60, query_string=True)
 def get_doctor_availability(doctor_id):
   days = int(request.args.get("days", "7"))
   result = find_doctor_availability(doctor_id, days)
@@ -93,6 +97,7 @@ def get_doctor_availability(doctor_id):
 
 @doctors_bp.route("/doctor-departments")
 @jwt_required()
+@cache.cached(timeout=600)
 def get_departments():
   # Only include departments that have at least one doctor
   departments = (

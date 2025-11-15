@@ -33,8 +33,7 @@ def create_app():
     database_url = f"sqlite:///{db_path}"
 
   app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-  app.config["JWT_SECRET_KEY"] = os.getenv("APP_SECRET") or "devsecret"
-  app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
+  db.init_app(app)
 
   # Configure Mail
   app.config["MAIL_SERVER"] = "smtp.gmail.com"
@@ -43,11 +42,17 @@ def create_app():
   app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
   app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
   app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_USERNAME")
-
-  # Initialize extensions
-  db.init_app(app)
-  jwt = JWTManager(app)
   mail.init_app(app)
+
+  # Configure Cache
+  app.config["CACHE_TYPE"] = "RedisCache"
+  app.config["CACHE_REDIS_URL"] = os.getenv("REDIS_URL")
+  cache.init_app(app)
+
+  # Configure JWT
+  app.config["JWT_SECRET_KEY"] = os.getenv("APP_SECRET") or "devsecret"
+  app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
+  jwt = JWTManager(app)
 
   # Handle unauthorized access
   @jwt.unauthorized_loader

@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Your App Name',
-        short_name: 'App',
+        name: 'Hospital Management App',
+        short_name: 'Hospital App',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
