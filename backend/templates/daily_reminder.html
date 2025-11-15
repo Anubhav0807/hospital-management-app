@@ -1,0 +1,40 @@
+{% extends "email_base.html" %}
+
+{% block title %}
+Appointment Reminder
+{% endblock %}
+
+{% block extra_styles %}
+.section {
+  background: #f1f5f9;
+  padding: 12px 15px;
+  border-radius: 8px;
+  margin-top: 15px;
+  border-left: 4px solid #0d6efd;
+}
+.appointment-details {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  font-size: 14px;
+}
+.appointment-details li {
+  margin: 6px 0;
+}
+{% endblock %}
+
+{% block content %}
+  <p>Hello {{ patient_name }},</p>
+
+  <p>This is a reminder for your appointment scheduled <strong>today</strong>.</p>
+
+  <div class="section">
+    <ul class="appointment-details">
+      <li><strong>Doctor:</strong> {{ doctor_name }}</li>
+      <li><strong>Department:</strong> {{ department_name }}</li>
+      <li><strong>Time:</strong> {{ appointment_time }}</li>
+    </ul>
+  </div>
+
+  <p>Please reach on time.</p>
+{% endblock %}

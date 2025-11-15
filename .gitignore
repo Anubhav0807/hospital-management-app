@@ -28,5 +28,9 @@ __pycache__/
 *.sqlite
 *.sqlite3
 *.pdf
+
 .env
 .venv/
+
+celerybeat-schedule
+celerybeat.pid

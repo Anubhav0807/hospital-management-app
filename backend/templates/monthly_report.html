@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+      background: #f7f9fc;
+      color: #333;
+      margin: 0;
+      padding: 30px;
+    }
+    .sheet {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 8px;
+      padding: 28px;
+      box-shadow: 0 6px 24px rgba(16,24,40,0.06);
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 8px;
+      margin-right: 8px;
+      background: #e9f2ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0d6efd;
+      font-weight: 700;
+      font-size: 18px;
+    }
+    h1 {
+      color: #0d6efd;
+      margin: 0;
+      font-size: 20px;
+    }
+    .meta {
+      text-align: right;
+      font-size: 12px;
+      color: #6c757d;
+    }
+    .kpi {
+      display: flex;
+      gap: 12px;
+      margin: 18px 0;
+    }
+    .card {
+      flex: 1;
+      background: #f5f8fb;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border-left: 4px solid #0d6efd;
+    }
+    .card .big {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0b5ed7;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #eef2f6;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f8fbff;
+      color: #0b5ed7;
+      font-weight: 600;
+    }
+    .muted {
+      color: #6c757d;
+      font-size: 12px;
+    }
+    .footer {
+      margin-top: 22px;
+      text-align: center;
+      font-size: 12px;
+      color: #6c757d;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sheet">
+
+    <header>
+      <div class="brand">
+        <div class="logo">AC</div>
+        <div>
+          <h1>Monthly Report — {{ month_label }}</h1>
+          <div class="muted">Generated on {{ generated_on }}</div>
+        </div>
+      </div>
+
+      <div class="meta">
+        <div><strong>{{ doctor_name }}</strong></div>
+        <div>{{ doctor_email }}</div>
+        <div>{{ doctor_department }}</div>
+      </div>
+    </header>
+
+    <div class="kpi">
+      <div class="card">
+        <div class="muted">Total Appointments</div>
+        <div class="big">{{ totals.total_appointments }}</div>
+      </div>
+      <div class="card">
+        <div class="muted">Unique Patients</div>
+        <div class="big">{{ totals.unique_patients }}</div>
+      </div>
+      <div class="card">
+        <div class="muted">Treatments Recorded</div>
+        <div class="big">{{ totals.treatments }}</div>
+      </div>
+    </div>
+
+    <h3 style="margin: 16px 0 8px; color:#0b5ed7;">Appointment List</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Patient</th>
+          <th>Date & Time</th>
+          <th>Diagnosis</th>
+          <th>Test Done</th>
+          <th>Prescription</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for a in appointments %}
+        <tr>
+          <td>{{ a.patient_name }}</td>
+          <td>{{ a.datetime_str }}</td>
+          <td>{{ a.diagnosis or '—' }}</td>
+          <td>{{ a.test_done or '—' }}</td>
+          <td>{{ a.treatment or '—' }}</td>
+          <td>{{ a.notes or '—' }}</td>
+        </tr>
+        {% endfor %}
+
+        {% if appointments|length == 0 %}
+        <tr>
+          <td colspan="6" class="muted">No appointments found for this month.</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+    <h3 style="margin: 20px 0 8px; color:#0b5ed7;">Diagnosis Summary</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Diagnosis</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for diag, count in diagnosis_summary %}
+        <tr>
+          <td>{{ diag }}</td>
+          <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+
+        {% if diagnosis_summary|length == 0 %}
+        <tr>
+          <td colspan="2" class="muted">No diagnosis recorded this month.</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+    <div class="footer">
+      &copy; {{ year }} Anubhav's Clinic
+    </div>
+
+  </div>
+</body>
+</html>

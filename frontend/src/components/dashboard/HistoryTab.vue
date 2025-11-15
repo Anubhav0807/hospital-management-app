@@ -4,41 +4,49 @@
       <h4 class="fw-semibold text-primary mb-0">
         <i class="bi bi-clock-history me-2"></i> Patient History
       </h4>
+
       <div>
-        <button v-if="patient_id" class="btn btn-outline-primary btn-sm me-2" @click="router.back">
+        <button
+          v-if="patient_id"
+          class="btn btn-outline-primary btn-sm me-2"
+          @click="router.back"
+        >
           <i class="bi bi-arrow-left me-1"></i> Back
         </button>
-        <button class="btn btn-outline-success btn-sm" @click="exportCSV">
+
+        <button
+          class="btn btn-outline-success btn-sm"
+          @click="exportCSV"
+        >
           <i class="bi bi-download me-1"></i> Export CSV
         </button>
       </div>
     </div>
 
-    <!-- Filter Row (Search + Date Range) -->
+    <!-- Filter Row -->
     <div class="row mb-3 g-2 align-items-end">
-
-      <!-- Search -->
       <div class="col-md-6">
         <label class="form-label small">Search</label>
         <div class="input-group">
           <span class="input-group-text"><i class="bi bi-search"></i></span>
-          <input v-model="searchQuery" type="text" class="form-control"
-            placeholder="Search diagnosis, notes, prescription, tests..." />
+          <input
+            v-model="searchQuery"
+            type="text"
+            class="form-control"
+            placeholder="Search diagnosis, notes, prescription, tests..."
+          />
         </div>
       </div>
 
-      <!-- Start Date -->
       <div class="col-md-3">
         <label class="form-label small">Start Date</label>
         <input type="date" v-model="startDate" class="form-control" />
       </div>
 
-      <!-- End Date -->
       <div class="col-md-3">
         <label class="form-label small">End Date</label>
         <input type="date" v-model="endDate" class="form-control" />
       </div>
-
     </div>
 
     <div class="table-responsive shadow-sm rounded">
@@ -54,6 +62,7 @@
             <th>Notes</th>
           </tr>
         </thead>
+
         <tbody>
           <tr v-for="(t, index) in paginated" :key="t.id">
             <td>{{ index + 1 + (currentPage - 1) * perPage }}</td>
@@ -75,11 +84,21 @@
           <button class="page-link" @click="prevPage">Previous</button>
         </li>
 
-        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: currentPage === page }">
-          <button class="page-link" @click="currentPage = page">{{ page }}</button>
+        <li
+          class="page-item"
+          v-for="page in totalPages"
+          :key="page"
+          :class="{ active: currentPage === page }"
+        >
+          <button class="page-link" @click="currentPage = page">
+            {{ page }}
+          </button>
         </li>
 
-        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+        <li
+          class="page-item"
+          :class="{ disabled: currentPage === totalPages }"
+        >
           <button class="page-link" @click="nextPage">Next</button>
         </li>
       </ul>
@@ -90,10 +109,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { titleCase, formatDate } from '../../utils'
 import api from '../../api'
 
-const route = useRoute();
-const router = useRouter();
+const route = useRoute()
+const router = useRouter()
 
 const patient_id = ref(route.query.patient_id)
 
@@ -104,20 +124,6 @@ const endDate = ref('')
 
 const currentPage = ref(1)
 const perPage = ref(10)
-
-function titleCase(str) {
-  if (!str) return ''
-  return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
-}
-
-function formatDate(dateStr) {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('en-IN', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
 
 async function fetchTreatments() {
   try {
@@ -133,7 +139,6 @@ async function fetchTreatments() {
 const filtered = computed(() => {
   let list = treatments.value
 
-  // Keyword search
   if (searchQuery.value.trim()) {
     const q = searchQuery.value.toLowerCase()
     list = list.filter(t =>
@@ -143,7 +148,6 @@ const filtered = computed(() => {
     )
   }
 
-  // Date range filtering
   if (startDate.value) {
     const start = new Date(startDate.value)
     list = list.filter(t => new Date(t.date) >= start)
@@ -151,7 +155,7 @@ const filtered = computed(() => {
 
   if (endDate.value) {
     const end = new Date(endDate.value)
-    end.setHours(23, 59, 59) // include whole end date
+    end.setHours(23, 59, 59)
     list = list.filter(t => new Date(t.date) <= end)
   }
 
@@ -175,32 +179,16 @@ function nextPage() {
   if (currentPage.value < totalPages.value) currentPage.value++
 }
 
-function exportCSV() {
-  const headers = ['ID', 'Date', 'Visit Type', 'Diagnosis', 'Tests Done', 'Prescription', 'Notes']
+async function exportCSV() {
+  try {
+    const res = await api.post('/history/export', {
+      patient_id: patient_id.value
+    })
 
-  const rows = filtered.value.map(t => [
-    t.id,
-    formatDate(t.date),
-    t.visit_type,
-    t.diagnosis,
-    t.test_done || '',
-    t.prescription || '',
-    t.notes || ''
-  ])
-
-  const csvContent = [headers, ...rows]
-    .map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
-    .join('\n')
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-
-  const link = document.createElement('a')
-  link.href = url
-  link.download = 'patient_history.csv'
-  link.click()
-
-  URL.revokeObjectURL(url)
+    alert('Export Started')
+  } catch (err) {
+    console.error('API Error:', err.response?.data || err.message)
+  }
 }
 
 onMounted(fetchTreatments)
