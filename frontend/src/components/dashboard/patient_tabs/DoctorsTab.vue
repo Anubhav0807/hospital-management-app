@@ -86,9 +86,11 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from '../../../composables/useToast'
 import api from '../../../api'
 
 const router = useRouter()
+const toast = useToast()
 
 const doctors = ref([])
 const departments = ref([])
@@ -144,7 +146,7 @@ async function loadDoctors() {
     doctors.value = res.data.doctors
     departments.value = [...new Set(res.data.doctors.map((d) => d.department.name))]
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    toast.error('Failed to load the doctors.')
   }
 }
 

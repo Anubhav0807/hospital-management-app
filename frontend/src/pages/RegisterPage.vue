@@ -149,6 +149,8 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import api from '../api'
 
+const router = useRouter();
+
 const name = ref("");
 const email = ref("");
 const password = ref("");
@@ -158,7 +160,6 @@ const gender = ref("");
 const address = ref("");
 const loading = ref(false);
 const errorMessage = ref("");
-const router = useRouter();
 
 const handleRegister = async () => {
   errorMessage.value = "";
@@ -179,12 +180,10 @@ const handleRegister = async () => {
       headers: { "Content-Type": "application/json" },
     });
 
-    console.log(response.data.message);
     localStorage.setItem('token', response.data.access_token)
     localStorage.setItem('user', JSON.stringify(response.data.user))
     router.push('/dashboard')
   } catch (error) {
-    console.error("Registration failed:", error);
     errorMessage.value =
       error.response?.data?.message || "Registration failed. Please try again.";
   } finally {

@@ -65,9 +65,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useToast } from '../../../composables/useToast'
 import { formatDate } from '../../../utils'
 import api from '../../../api'
 
+const toast = useToast();
 const availability = ref([])
 
 async function fetchAvailability() {
@@ -78,7 +80,6 @@ async function fetchAvailability() {
       weekday: new Date(d.date).toLocaleDateString('en-IN', { weekday: 'long' })
     }))
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
     availability.value = generateNext7Days()
   }
 }
@@ -86,10 +87,9 @@ async function fetchAvailability() {
 async function saveAvailability() {
   try {
     await api.put('/doctor/availability', { availability: availability.value })
-    alert('Availability updated successfully!')
+    toast.success('Availability updated successfully!')
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
-    alert('Failed to update availability. Please try again.')
+    toast.err('Failed to update availability.')
   }
 }
 

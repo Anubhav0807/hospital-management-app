@@ -41,11 +41,14 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useToast } from '../../../composables/useToast'
 import api from '../../../api'
 
 import AppointmentCard from './ui/AppointmentCard.vue'
 import TreatmentCard from './ui/TreatmentCard.vue'
 import CancelModal from './ui/CancelModal.vue'
+
+const toast = useToast()
 
 const user = ref({ name: 'Patient' })
 const stats = ref({ upcoming: 0, visited: 0, prescriptions: 0 })
@@ -68,7 +71,7 @@ async function loadSummary() {
     nextAppointment.value = res.data.next_appointment
     recentTreatment.value = res.data.recent_diagnosis
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    toast.error('Failed to load the summary.')
   }
 }
 

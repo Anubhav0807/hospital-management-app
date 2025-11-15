@@ -133,8 +133,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { Modal } from 'bootstrap'
+import { useToast } from '../../../composables/useToast'
 import { Status, VisitType, formatDateTime, titleCase } from '../../../utils'
 import api from '../../../api'
+
+const toast = useToast()
 
 const appointments = ref([])
 const activeFilter = ref(Status.BOOKED)
@@ -174,7 +177,7 @@ async function fetchAppointments() {
     const res = await api.get('/doctor/appointments')
     appointments.value = res.data.appointments
   } catch (err) {
-    console.error('API Error:', err.response?.data?.error || err.message)
+    toast.error('Failed to fetch the appointments.')
   }
 }
 
@@ -183,7 +186,7 @@ async function cancelAppointment(appt) {
     await api.patch(`/doctor/appointment/${appt.id}`)
     appt.status = Status.CANCELLED
   } catch (err) {
-    console.error('API Error:', err.response?.data?.error || err.message)
+    toast.error('Unable to cancel the appointment.')
   }
 }
 
@@ -213,7 +216,7 @@ async function saveTreatment() {
     selectedAppointment.value.status = Status.COMPLETED
     modalInstance.hide()
   } catch (err) {
-    console.error('API Error:', err.response?.data?.error || err.message)
+    toast.error('Unable to save the treatment.')
   } finally {
     loading.value = false
   }

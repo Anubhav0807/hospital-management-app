@@ -9,12 +9,7 @@
 
     <!-- Search -->
     <div class="mb-3">
-      <input
-        v-model="searchQuery"
-        type="text"
-        class="form-control"
-        placeholder="Search by name or department..."
-      />
+      <input v-model="searchQuery" type="text" class="form-control" placeholder="Search by name or department..." />
     </div>
 
     <!-- Doctors Table -->
@@ -42,17 +37,14 @@
               </span>
             </td>
             <td class="text-center">
-              <button
-                class="btn btn-sm btn-outline-warning me-2"
-                title="Toggle Blacklist"
-                @click="toggleBlacklist(doctor)"
-              >
-                <i :class="doctor.blacklisted ? 'bi bi-person-check' : 'bi bi-person-fill-slash'"></i>
+              <button class="btn btn-sm btn-outline-warning me-2" title="Toggle Blacklist"
+                @click="toggleBlacklist(doctor)">
+                <i :class="doctor.blacklisted
+                    ? 'bi bi-person-check'
+                    : 'bi bi-person-fill-slash'
+                  "></i>
               </button>
-              <button
-                class="btn btn-sm btn-outline-primary me-2"
-                @click="editDoctor(doctor)"
-              >
+              <button class="btn btn-sm btn-outline-primary me-2" @click="editDoctor(doctor)">
                 <i class="bi bi-pencil"></i>
               </button>
               <button class="btn btn-sm btn-outline-danger" @click="deleteDoctor(doctor.id)">
@@ -70,24 +62,19 @@
     </div>
 
     <!-- Add/Edit Doctor Modal -->
-    <div
-      class="modal fade"
-      id="doctorModal"
-      tabindex="-1"
-      aria-labelledby="doctorModalLabel"
-      aria-hidden="true"
-    >
+    <div class="modal fade" id="doctorModal" tabindex="-1" aria-labelledby="doctorModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="doctorModalLabel">
-              {{ isEditing ? "Update Doctor" : "Add Doctor" }}
+              {{ isEditing ? 'Update Doctor' : 'Add Doctor' }}
             </h5>
             <button type="button" class="btn-close" @click="closeModal"></button>
           </div>
 
           <div class="modal-body">
             <form @submit.prevent="saveDoctor">
+              <!-- Email (only while adding) -->
               <div class="mb-3" v-if="!isEditing">
                 <label class="form-label">Email</label>
                 <input v-model="form.email" type="email" class="form-control" required />
@@ -99,26 +86,33 @@
               </div>
 
               <div class="d-flex flex-column flex-md-row justify-content-between">
-                <div class="mb-3">
+                <div class="mb-3 w-100 me-md-2">
                   <label class="form-label">Contact Number</label>
                   <input v-model="form.contact" type="text" class="form-control" required />
                 </div>
 
-                <div class="mb-3">
+                <div class="mb-3 w-100 ms-md-2">
                   <label class="form-label">Experience (in years)</label>
-                  <input
-                    v-model="form.experience_years"
-                    type="number"
-                    min="0"
-                    class="form-control"
-                    required
-                  />
+                  <input v-model="form.experience_years" type="number" min="0" class="form-control" required />
                 </div>
               </div>
 
+              <!-- Department Section -->
               <div class="mb-3">
-                <label class="form-label">Department</label>
-                <select v-model="form.department_id" class="form-select" required>
+                <label class="form-label me-2">Department</label>
+                <span @click="toggleAddDept" role="button" title="Add Department">
+                  <i v-if="newDepartment" class="bi bi-dash-lg"></i>
+                  <i v-else class="bi bi-plus-lg"></i>
+                </span>
+
+                <!-- New department fields -->
+                <div v-if="newDepartment" class="mt-2">
+                  <input v-model="form.new_dept_name" class="form-control mb-2" placeholder="Name" required />
+                  <input v-model="form.new_dept_desc" class="form-control" placeholder="Description (optional)" />
+                </div>
+
+                <!-- Existing department dropdown -->
+                <select v-else v-model="form.department_id" class="form-select mt-2" required>
                   <option disabled value="">Select department</option>
                   <option v-for="d in departments" :key="d.id" :value="d.id">
                     {{ d.name }}
@@ -128,7 +122,7 @@
 
               <div class="d-flex justify-content-end">
                 <button type="submit" class="btn btn-success">
-                  {{ isEditing ? "Update" : "Add" }}
+                  {{ isEditing ? 'Update' : 'Add' }}
                 </button>
               </div>
             </form>
@@ -142,20 +136,28 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { Modal } from 'bootstrap'
+import { useToast } from '../../../composables/useToast.js'
 import api from '../../../api.js'
+
+const toast = useToast()
 
 const doctors = ref([])
 const departments = ref([])
 const searchQuery = ref('')
+
 const isEditing = ref(false)
 const editingId = ref(null)
+
+const newDepartment = ref(false)
 
 const form = ref({
   email: '',
   name: '',
   contact: '',
   department_id: '',
-  experience_years: ''
+  experience_years: '',
+  new_dept_name: '',
+  new_dept_desc: ''
 })
 
 // Fetch Data
@@ -163,8 +165,8 @@ async function fetchDoctors() {
   try {
     const res = await api.get('/admin/doctors')
     doctors.value = res.data.doctors
-  } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+  } catch {
+    toast.error('Failed to fetch the doctors.')
   }
 }
 
@@ -172,8 +174,8 @@ async function fetchDepartments() {
   try {
     const res = await api.get('/admin/departments')
     departments.value = res.data.departments
-  } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+  } catch {
+    toast.error('Failed to fetch the departments.')
   }
 }
 
@@ -188,8 +190,8 @@ async function saveDoctor() {
     await fetchDoctors()
     resetForm()
     closeModal()
-  } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+  } catch {
+    toast.error('Failed to save the doctor profile.')
   }
 }
 
@@ -198,8 +200,8 @@ async function deleteDoctor(id) {
     try {
       await api.delete(`/admin/doctor/${id}`)
       doctors.value = doctors.value.filter(d => d.id !== id)
-    } catch (err) {
-      console.error('API Error:', err.response.data?.error || err.message)
+    } catch {
+      toast.error('Unable to delete the doctor.')
     }
   }
 }
@@ -210,8 +212,23 @@ async function toggleBlacklist(doctor) {
       blacklisted: !doctor.blacklisted
     })
     doctor.blacklisted = !doctor.blacklisted
-  } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+  } catch {
+    toast.error(
+      doctor.blacklisted
+        ? 'Unable to remove the doctor from the blacklist'
+        : 'Unable to blacklist the doctor.'
+    )
+  }
+}
+
+function toggleAddDept() {
+  newDepartment.value = !newDepartment.value
+
+  if (newDepartment.value) {
+    form.value.department_id = ''
+  } else {
+    form.value.new_dept_name = ''
+    form.value.new_dept_desc = ''
   }
 }
 
@@ -219,40 +236,45 @@ async function toggleBlacklist(doctor) {
 function openModal() {
   resetForm()
   const modalEl = document.getElementById('doctorModal')
-  const modal = Modal.getOrCreateInstance(modalEl)
-  modal.show()
+  Modal.getOrCreateInstance(modalEl).show()
 }
 
 function editDoctor(doctor) {
   isEditing.value = true
   editingId.value = doctor.id
+
   form.value = {
+    email: doctor.email,
     name: doctor.name,
     contact: doctor.contact,
     department_id: doctor.department.id,
     experience_years: doctor.experience,
-    email: doctor.email
+    new_dept_name: '',
+    new_dept_desc: ''
   }
+
+  newDepartment.value = false
+
   const modalEl = document.getElementById('doctorModal')
-  const modal = Modal.getOrCreateInstance(modalEl)
-  modal.show()
+  Modal.getOrCreateInstance(modalEl).show()
 }
 
 function closeModal() {
   const modalEl = document.getElementById('doctorModal')
-  const modal = Modal.getOrCreateInstance(modalEl)
-  modal.hide()
+  Modal.getOrCreateInstance(modalEl).hide()
 }
 
-// Utility
 function resetForm() {
   form.value = {
     email: '',
     name: '',
     contact: '',
     department_id: '',
-    experience_years: ''
+    experience_years: '',
+    new_dept_name: '',
+    new_dept_desc: ''
   }
+  newDepartment.value = false
 }
 
 // Search
@@ -261,7 +283,7 @@ const filteredDoctors = computed(() => {
   return doctors.value.filter(
     d =>
       d.name.toLowerCase().includes(q) ||
-      (d.department.name.toLowerCase().includes(q))
+      d.department.name.toLowerCase().includes(q)
   )
 })
 
@@ -269,12 +291,12 @@ const filteredDoctors = computed(() => {
 onMounted(() => {
   fetchDoctors()
   fetchDepartments()
-  
-  // Bootstrap's built-in event for when the modal is FULLY HIDDEN
+
   const modalEl = document.getElementById('doctorModal')
   modalEl.addEventListener('hidden.bs.modal', () => {
     isEditing.value = false
     editingId.value = null
+    newDepartment.value = false
   })
 })
 </script>

@@ -31,10 +31,13 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Modal } from 'bootstrap'
+import { useToast } from '../../../../composables/useToast'
 import api from '../../../../api'
 
 const props = defineProps({ appt: Object })
 const emit = defineEmits(['cancelled'])
+
+const toast = useToast()
 
 const cancelModalRef = ref(null)
 let cancelModal = null
@@ -54,7 +57,7 @@ async function confirmCancel() {
     cancelModal.hide()
     emit('cancelled')
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    toast.error('Unable to cancel the appointment.')
   }
 }
 

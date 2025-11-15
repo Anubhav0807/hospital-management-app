@@ -61,6 +61,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from '../../../composables/useToast'
 import api from '../../../api'
 
 import AppointmentCard from './ui/AppointmentCard.vue'
@@ -68,6 +69,8 @@ import TreatmentCard from './ui/TreatmentCard.vue'
 import CancelModal from './ui/CancelModal.vue'
 
 const router = useRouter()
+const toast = useToast()
+
 const activeTab = ref('upcoming')
 const selectedAppt = ref(null)
 const cancelModalRef = ref(null)
@@ -80,7 +83,7 @@ async function loadAppointments() {
     upcoming.value = res.data.upcoming
     past.value = res.data.past
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    toast.error('Failed to fetch the appointments.')
   }
 }
 

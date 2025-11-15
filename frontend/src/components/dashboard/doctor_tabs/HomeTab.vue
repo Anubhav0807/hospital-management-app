@@ -52,8 +52,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useToast } from '../../../composables/useToast';
 import { formatDateTime, titleCase } from '../../../utils';
 import api from '../../../api'
+
+const toast = useToast()
 
 const appointments = ref([])
 const days = ref(7);
@@ -83,7 +86,7 @@ async function fetchAppointments() {
     stats.value[1].value = res.data.patient_count
     stats.value[2].value = res.data.completed_count
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    toast.error('Failed to fetch the appointments.')
   }
 }
 

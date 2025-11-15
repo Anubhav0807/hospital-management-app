@@ -24,6 +24,10 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       router.push("/login")
     }
+    console.error(
+      'API Error:',
+      error.response?.data?.error || error.message
+    )
     return Promise.reject(error);
   }
 );

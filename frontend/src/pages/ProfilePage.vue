@@ -44,6 +44,7 @@
 <script setup>
 import { shallowRef, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from '../composables/useToast'
 import { titleCase } from '../utils'
 import api from '../api'
 
@@ -51,6 +52,7 @@ import DoctorProfile from '../components/profiles/DoctorProfile.vue'
 import PatientProfile from '../components/profiles/PatientProfile.vue'
 
 const router = useRouter()
+const toast = useToast();
 const user = ref(null)
 const currentProfileComponent = shallowRef(null)
 
@@ -68,17 +70,16 @@ async function loadProfile() {
         break
     }
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    toast.error('Unable to load the profile.')
   }
 }
 
 async function updateProfile() {
   try {
     await api.put('/auth/profile', user.value)
-    alert('Profile updated successfully!')
+    toast.success('Profile updated successfully!')
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
-    alert('Error updating profile.')
+    toast.error('Unable to update the profile.')
   }
 }
 

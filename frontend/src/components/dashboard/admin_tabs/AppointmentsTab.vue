@@ -72,8 +72,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useToast } from '../../../composables/useToast'
 import { Status, titleCase } from '../../../utils'
 import api from '../../../api'
+
+const toast = useToast();
 
 const activeTab = ref('upcoming')
 const appointments = ref([])
@@ -92,7 +95,7 @@ async function markCompleted(appt) {
     await api.put(`/admin/appointment/${appt.id}`, { status: Status.COMPLETED })
     appt.status = Status.COMPLETED
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    toast.error(`Unable to mark the appointment as ${Status.COMPLETED}.`)
   }
 }
 
@@ -101,7 +104,7 @@ async function cancelAppointment(appt) {
     await api.put(`/admin/appointment/${appt.id}`, { status: Status.CANCELLED })
     appt.status = Status.CANCELLED
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    toast.error(`Unable to mark the appointment as ${Status.COMPLETED}.`)
   }
 }
 
@@ -110,7 +113,7 @@ onMounted(async () => {
     const response = await api.get('/admin/appointments')
     appointments.value = response.data.appointments
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    toast.error('Failed to fetch the appointments.')
   }
 })
 </script>

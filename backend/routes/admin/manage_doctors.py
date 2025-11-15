@@ -39,14 +39,46 @@ def add_doctor():
     return jsonify({"error": "Unauthorized"}), 403
 
   data = request.get_json()
-  required = ["email", "name", "contact", "department_id", "experience_years"]
-  if not all(field in data and data[field] for field in required):
-    return jsonify({"error": "Missing required fields"}), 400
+
+  # Extract new dept fields
+  new_dept_name = data.get("new_dept_name", "").strip()
+  new_dept_desc = data.get("new_dept_desc", "").strip()
+
+  # Case 1: Existing department
+  if not new_dept_name:
+    required = ["email", "name", "contact", "department_id", "experience_years"]
+    if not all(field in data and data[field] for field in required):
+      return jsonify({"error": "Missing required fields"}), 400
+  else:
+    # Case 2: New department
+    required = ["email", "name", "contact", "experience_years"]
+    if not all(field in data and data[field] for field in required):
+      return jsonify({"error": "Missing required fields"}), 400
 
   try:
-    # 1. Create user
+    department_id = data.get("department_id")
+
+    if new_dept_name:
+      # Check duplicate department name (case-insensitive)
+      existing = Department.query.filter(
+        db.func.lower(Department.name) == new_dept_name.lower()
+      ).first()
+
+      if existing:
+        return jsonify({"error": "Department already exists"}), 400
+
+      new_dept = Department(
+        name=new_dept_name,
+        description=new_dept_desc
+      )
+      db.session.add(new_dept)
+      db.session.flush()  # get new_dept.id
+
+      department_id = new_dept.id
+
     password = (data["name"][:4] + data["contact"][-4:]).encode()
     hashed_pw = hashlib.sha256(password).hexdigest()
+
     new_user = User(
       email=data["email"],
       password=hashed_pw,
@@ -54,16 +86,17 @@ def add_doctor():
       contact_number=data["contact"],
       role=RoleEnum.DOCTOR
     )
+
     db.session.add(new_user)
     db.session.flush()  # get new_user.id
 
-    # 2. Create doctor profile
     new_doctor = Doctor(
       user_id=new_user.id,
-      department_id=data["department_id"],
+      department_id=department_id,
       experience_years=data["experience_years"],
       blacklisted=False
     )
+
     db.session.add(new_doctor)
     db.session.commit()
 

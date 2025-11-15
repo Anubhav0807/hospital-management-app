@@ -104,9 +104,11 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { formatDateTime, titleCase } from '../../../utils'
 import { Modal } from 'bootstrap'
 import { useRouter } from 'vue-router'
+import { useToast } from '../../../composables/useToast'
 import api from '../../../api'
 
 const router = useRouter()
+const toast = useToast()
 
 const patients = ref([])
 const search = ref('')
@@ -127,7 +129,7 @@ async function fetchPatients() {
     const res = await api.get('/doctor/patients')
     patients.value = res.data.patients
   } catch (err) {
-    console.error('API Error:', err.response?.data?.error || err.message)
+    toast.error('Failed to fetch the patients.')
   }
 }
 

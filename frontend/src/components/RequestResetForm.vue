@@ -47,7 +47,6 @@ const handleResetPassword = async () => {
     message.value = response.data?.message || "Reset link sent to your email.";
     messageClass.value = "alert-success";
   } catch (error) {
-    console.error("Error:", error);
     message.value = error.response?.data?.message || "Failed to send reset link.";
     messageClass.value = "alert-danger";
   } finally {

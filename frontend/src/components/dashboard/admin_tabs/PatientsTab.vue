@@ -75,9 +75,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from '../../../composables/useToast.js'
 import api from '../../../api.js'
 
 const router = useRouter()
+const toast = useToast()
 
 const patients = ref([])
 const searchQuery = ref('')
@@ -97,7 +99,7 @@ async function fetchPatients() {
     const res = await api.get('/admin/patients')
     patients.value = res.data
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    toast.error('Failed to fetch the patients.')
   }
 }
 
@@ -107,7 +109,7 @@ async function removePatient(id) {
     await api.delete(`/admin/patient/${id}`)
     patients.value = patients.value.filter(p => p.id !== id)
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    toast.error('Unable to remove the patient.')
   }
 }
 
@@ -119,7 +121,11 @@ async function toggleBlacklist(patient) {
     )
     patient.blacklisted = res.data.blacklisted
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    if (doctor.blacklisted) {
+      toast.error('Unable to remove the patient from blacklist')
+    } else {
+      toast.error('Unable to blacklist the patient.')
+    }
   }
 }
 

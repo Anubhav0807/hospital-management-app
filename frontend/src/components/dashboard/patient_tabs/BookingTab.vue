@@ -115,11 +115,13 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useToast } from '../../../composables/useToast'
 import { formatDate } from '../../../utils'
 import api from '../../../api'
 
 const router = useRouter()
 const route = useRoute()
+const toast = useToast()
 
 const doctorId = ref(route.query.doctor_id)
 const doctorName = ref(route.query.doctor_name)
@@ -155,7 +157,7 @@ async function fetchBookedSlotsForRange(doctorId, startDateStr, endDateStr) {
     const res = await api.get(`/patient/doctor-bookings/${doctorId}?start_date=${startDateStr}&end_date=${endDateStr}`)
     return res.data.booked_datetimes || []
   } catch (err) {
-    console.error('API Error:', err.response?.data || err.message)
+    toast.error('Failed to fetch booked slots.')
     return []
   }
 }
@@ -165,7 +167,7 @@ async function loadDepartments() {
     const res = await api.get('/patient/doctor-departments')
     departments.value = res.data.departments
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    toast.error('Failed to load the departments.')
   }
 }
 
@@ -175,7 +177,7 @@ async function loadDoctors() {
     const res = await api.get(`/patient/doctors?department_id=${selectedDepartment.value}`)
     doctors.value = res.data.doctors
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    toast.error('Failed to load the doctors.')
   }
 }
 
@@ -216,7 +218,7 @@ async function loadAvailability() {
       document.getElementById('availability').scrollIntoView()
     }, 100)
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    toast.error('Failed to load the doctor\'s availability.')
   }
 }
 
@@ -269,7 +271,7 @@ function selectDate(slot) {
 
 async function confirmBooking() {
   if (!selectedDate.value || !selectedTime.value) {
-    alert('Please select a date and time.')
+    toast.info('Please select a date and time.')
     return
   }
 
@@ -278,15 +280,14 @@ async function confirmBooking() {
   try {
     if (reschedule.value) {
       await api.put(`/patient/appointment/${apptId.value}`, { datetime })
-      alert('Appointment rescheduled successfully!')
+      toast.success('Appointment rescheduled successfully!')
     } else {
       await api.post('/patient/appointments', { doctor_id: doctorId.value, datetime })
-      alert('Appointment booked successfully!')
+      toast.success('Appointment booked successfully!')
     }
     router.push({ path: '/dashboard', query: { tab: 'appointments' } })
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
-    alert(err.response.data?.error || 'Failed to book appointment.')
+    toast.error('Failed to book appointment.')
   }
 }
 

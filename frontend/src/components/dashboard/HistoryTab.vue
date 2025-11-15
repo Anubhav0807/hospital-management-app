@@ -109,8 +109,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useToast } from '../../composables/useToast'
 import { titleCase, formatDate } from '../../utils'
 import api from '../../api'
+
+const toast = useToast()
 
 const route = useRoute()
 const router = useRouter()
@@ -132,7 +135,7 @@ async function fetchTreatments() {
     })
     treatments.value = res.data.treatments
   } catch (err) {
-    console.error('API Error:', err.response?.data || err.message)
+    toast.error("Failed to load history.")
   }
 }
 
@@ -185,9 +188,9 @@ async function exportCSV() {
       patient_id: patient_id.value
     })
 
-    alert('Export Started')
+    toast.success(res.data.message)
   } catch (err) {
-    console.error('API Error:', err.response?.data || err.message)
+    toast.error('Failed to export.')
   }
 }
 

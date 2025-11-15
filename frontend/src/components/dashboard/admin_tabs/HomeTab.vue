@@ -41,10 +41,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useToast } from '../../../composables/useToast';
 import api from '../../../api'
 
-const router = useRouter();
+const toast = useToast();
 
 const counts = ref({
   doctors: 0,
@@ -57,7 +57,7 @@ onMounted(async () => {
     const response = await api.get('/admin/summary')
     counts.value = response.data
   } catch (err) {
-    console.error('API Error:', err.response.data?.error || err.message)
+    toast.error('Failed to fetch the summary.')
   }
 })
 </script>

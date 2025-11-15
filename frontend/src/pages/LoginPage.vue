@@ -65,11 +65,12 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import api from '../api'
 
+const router = useRouter();
+
 const email = ref("");
 const password = ref("");
 const loading = ref(false);
 const errorMessage = ref("");
-const router = useRouter();
 
 const handleLogin = async () => {
   errorMessage.value = "";
@@ -80,12 +81,10 @@ const handleLogin = async () => {
       email: email.value,
       password: password.value,
     });
-    console.log(response.data.message)
     localStorage.setItem("token", response.data.access_token)
     localStorage.setItem("user", JSON.stringify(response.data.user))
     router.push("/dashboard");
   } catch (error) {
-    console.error("Login failed:", error);
     errorMessage.value =
       error.response?.data?.message || "Invalid email or password.";
   } finally {
