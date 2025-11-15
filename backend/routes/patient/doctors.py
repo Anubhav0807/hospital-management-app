@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from datetime import date, datetime, timedelta
 
-from models import User, Doctor, Department, Availability, Appointment, StatusEnum
+from models import User, Doctor, Department, Availability, Appointment, ApptStatus
 from routes import cache
 
 doctors_bp = Blueprint("doctors_bp", __name__)
@@ -135,7 +135,7 @@ def get_doctor_bookings(doctor_id):
 
   q = Appointment.query.filter(
     Appointment.doctor_id == doctor_id,
-    Appointment.status == StatusEnum.BOOKED
+    Appointment.status == ApptStatus.BOOKED
   )
 
   if sd:

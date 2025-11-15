@@ -1,6 +1,7 @@
 <template>
   <div class="appointments-tab container py-4">
-    <!-- Title -->
+
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h4 class="fw-semibold text-primary mb-0">
         <i class="bi bi-calendar2-check me-2"></i> Appointments
@@ -37,16 +38,14 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="d-flex gap-1">
-              <button class="btn btn-outline-success btn-sm" :disabled="appt.status === Status.COMPLETED"
-                @click="openTreatmentModal(appt)">
+            <div v-if="appt.status === ApptStatus.BOOKED" class="d-flex gap-1">
+              <button class="btn btn-outline-success btn-sm" @click="openTreatmentModal(appt)">
                 <span class="d-inline-flex align-items-center">
                   <i class="bi bi-check-circle me-1"></i>
                   <span>Complete</span>
                 </span>
               </button>
-              <button class="btn btn-outline-danger btn-sm" :disabled="appt.status === Status.CANCELLED"
-                @click="cancelAppointment(appt)">
+              <button class="btn btn-outline-danger btn-sm" @click="cancelAppointment(appt)">
                 <span class="d-inline-flex align-items-center">
                   <i class="bi bi-x-circle me-1"></i>
                   <span>Cancel</span>
@@ -95,10 +94,17 @@
                 </div>
               </div>
 
-              <div class="mb-3">
-                <label class="form-label">Tests Done</label>
-                <input v-model="form.test_done" type="text" class="form-control"
-                  placeholder="Enter tests done (if any)" />
+              <div class="row">
+                <div class="col-md-8 mb-3">
+                  <label class="form-label">Tests Done</label>
+                  <input v-model="form.test_done" type="text" class="form-control"
+                    placeholder="Enter tests done (if any)" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Fee Amount</label>
+                  <input v-model="form.fee" type="number" min="0" class="form-control" placeholder="Amount in INR" />
+                </div>
               </div>
 
               <div class="mb-3">
@@ -134,27 +140,30 @@
 import { ref, computed, onMounted } from 'vue'
 import { Modal } from 'bootstrap'
 import { useToast } from '../../../composables/useToast'
-import { Status, VisitType, formatDateTime, titleCase } from '../../../utils'
+import { ApptStatus, VisitType, formatDateTime, titleCase } from '../../../utils'
 import api from '../../../api'
 
 const toast = useToast()
 
 const appointments = ref([])
-const activeFilter = ref(Status.BOOKED)
-const filterOptions = [...Object.values(Status), 'all']
+const activeFilter = ref(ApptStatus.BOOKED)
+const filterOptions = [...Object.values(ApptStatus), 'all']
 
 const selectedAppointment = ref(null)
 const loading = ref(false)
 const modalRef = ref(null)
 let modalInstance = null
 
-const form = ref({
+const initialFormValue = {
   visit_type: '',
   diagnosis: '',
   test_done: '',
+  fee: '200',
   prescription: '',
   notes: ''
-})
+}
+
+const form = ref({ ...initialFormValue })
 
 const filteredAppointments = computed(() => {
   if (activeFilter.value === 'all') return appointments.value
@@ -184,7 +193,7 @@ async function fetchAppointments() {
 async function cancelAppointment(appt) {
   try {
     await api.patch(`/doctor/appointment/${appt.id}`)
-    appt.status = Status.CANCELLED
+    appt.status = ApptStatus.CANCELLED
   } catch (err) {
     toast.error('Unable to cancel the appointment.')
   }
@@ -192,13 +201,7 @@ async function cancelAppointment(appt) {
 
 function openTreatmentModal(appt) {
   selectedAppointment.value = appt
-  form.value = {
-    visit_type: '',
-    diagnosis: '',
-    test_done: '',
-    prescription: '',
-    notes: ''
-  }
+  form.value = { ...initialFormValue }
   if (!modalInstance)
     modalInstance = new Modal(modalRef.value)
   modalInstance.show()
@@ -213,7 +216,7 @@ async function saveTreatment() {
       ...form.value
     })
     // update status locally
-    selectedAppointment.value.status = Status.COMPLETED
+    selectedAppointment.value.status = ApptStatus.COMPLETED
     modalInstance.hide()
   } catch (err) {
     toast.error('Unable to save the treatment.')

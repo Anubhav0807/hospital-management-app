@@ -1,7 +1,7 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, render_template, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
-from models import db, User, Appointment, Availability, StatusEnum
+from models import *
 
 appointments_bp = Blueprint("appointments_bp", __name__)
 
@@ -34,12 +34,15 @@ def get_appointments():
       "date": a.appointment_datetime.isoformat(),
       "status": a.status.value,
       "diagnosis": a.treatment.diagnosis if a.treatment else None,
-      "prescription": a.treatment.prescription if a.treatment else None
+      "prescription": a.treatment.prescription if a.treatment else None,
+      "fee": a.treatment.fee if a.treatment else None,
+      "payment_token": a.treatment.payment_token if a.treatment else None,
+      "payment_status": a.treatment.payment_status.value if a.treatment else None
     }
 
-    if a.status == StatusEnum.BOOKED:
+    if a.status == ApptStatus.BOOKED:
       upcoming.append(item)
-    elif a.status == StatusEnum.COMPLETED:
+    elif a.status == ApptStatus.COMPLETED:
       past.append(item)
 
   return jsonify({"upcoming": upcoming, "past": past})
@@ -80,7 +83,7 @@ def book_appointment():
     Appointment.query
     .filter(
       Appointment.doctor_id == doctor_id,
-      Appointment.status == StatusEnum.BOOKED,
+      Appointment.status == ApptStatus.BOOKED,
       Appointment.appointment_datetime >= slot_start,
       Appointment.appointment_datetime <= slot_end
     )
@@ -94,7 +97,7 @@ def book_appointment():
     Appointment.query
     .filter(
       Appointment.patient_id == user_id,
-      Appointment.status == StatusEnum.BOOKED,
+      Appointment.status == ApptStatus.BOOKED,
       Appointment.appointment_datetime >= slot_start,
       Appointment.appointment_datetime <= slot_end
     )
@@ -107,7 +110,7 @@ def book_appointment():
     patient_id=user_id,
     doctor_id=doctor_id,
     appointment_datetime=appt_datetime,
-    status=StatusEnum.BOOKED
+    status=ApptStatus.BOOKED
   )
 
   db.session.add(new_appt)
@@ -154,7 +157,7 @@ def reschedule_appointment(appt_id):
     .filter(
       Appointment.doctor_id == appt.doctor_id,
       Appointment.id != appt.id,
-      Appointment.status == StatusEnum.BOOKED,
+      Appointment.status == ApptStatus.BOOKED,
       Appointment.appointment_datetime >= slot_start,
       Appointment.appointment_datetime <= slot_end
     )
@@ -169,7 +172,7 @@ def reschedule_appointment(appt_id):
     .filter(
       Appointment.patient_id == user_id,
       Appointment.id != appt.id,
-      Appointment.status == StatusEnum.BOOKED,
+      Appointment.status == ApptStatus.BOOKED,
       Appointment.appointment_datetime >= slot_start,
       Appointment.appointment_datetime <= slot_end
     )
@@ -180,7 +183,7 @@ def reschedule_appointment(appt_id):
 
   # --- Update appointment ---
   appt.appointment_datetime = new_dt
-  appt.status = StatusEnum.BOOKED
+  appt.status = ApptStatus.BOOKED
   db.session.commit()
 
   return jsonify({"message": "Appointment rescheduled successfully"})
@@ -194,7 +197,31 @@ def cancel_appointment(appt_id):
   if not appt or appt.patient_id != user_id:
     return jsonify({"error": "Appointment not found"}), 404
 
-  appt.status = StatusEnum.CANCELLED
+  appt.status = ApptStatus.CANCELLED
   db.session.commit()
 
   return jsonify({"message": "Appointment cancelled successfully"})
+
+@appointments_bp.route("/payment/status/<int:treat_id>", methods=["GET"])
+@jwt_required()
+def get_payment_status(treat_id):
+  treatment = Treatment.query.get(treat_id)
+  
+  if not treatment:
+    return jsonify({"error": "Treatment not found"}), 404
+  
+  return jsonify({
+    "status": treatment.payment_status.value,
+  }), 200
+
+@appointments_bp.route("payment/confirm/<string:token>", methods=["GET"])
+def confirm_payment(token):
+  treatment = Treatment.query.filter_by(payment_token=token).first()
+
+  if not treatment:
+    return jsonify({"error": "Treatment not found"}), 404
+
+  treatment.payment_status = PaymentStatus.PAID
+  db.session.commit()
+  
+  return render_template("payment_success.html", amount=treatment.fee), 200

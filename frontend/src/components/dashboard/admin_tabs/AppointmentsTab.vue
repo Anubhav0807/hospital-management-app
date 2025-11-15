@@ -2,6 +2,11 @@
   <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h4>Appointments</h4>
+
+      <!-- Refresh button -->
+      <button class="btn btn-outline-primary btn-sm" @click="fetchAppointments">
+        <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+      </button>
     </div>
 
     <!-- Tabs -->
@@ -41,19 +46,19 @@
             <td>{{ appt.time }}</td>
             <td>
               <span class="badge" :class="{
-                'bg-success': appt.status === Status.COMPLETED,
-                'bg-danger': appt.status === Status.CANCELLED,
-                'bg-primary': appt.status === Status.BOOKED
+                'bg-success': appt.status === ApptStatus.COMPLETED,
+                'bg-danger': appt.status === ApptStatus.CANCELLED,
+                'bg-primary': appt.status === ApptStatus.BOOKED
               }">
                 {{ titleCase(appt.status) }}
               </span>
             </td>
             <td class="text-center">
-              <button v-if="appt.status === Status.BOOKED" class="btn btn-sm btn-outline-success me-2"
+              <button v-if="appt.status === ApptStatus.BOOKED" class="btn btn-sm btn-outline-success me-2"
                 @click="markCompleted(appt)">
                 <i class="bi bi-check-circle"></i>
               </button>
-              <button v-if="appt.status === Status.BOOKED" class="btn btn-sm btn-outline-danger"
+              <button v-if="appt.status === ApptStatus.BOOKED" class="btn btn-sm btn-outline-danger"
                 @click="cancelAppointment(appt)">
                 <i class="bi bi-x-circle"></i>
               </button>
@@ -73,7 +78,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useToast } from '../../../composables/useToast'
-import { Status, titleCase } from '../../../utils'
+import { ApptStatus, titleCase } from '../../../utils'
 import api from '../../../api'
 
 const toast = useToast();
@@ -90,32 +95,34 @@ const filteredAppointments = computed(() => {
   }
 })
 
-async function markCompleted(appt) {
-  try {
-    await api.put(`/admin/appointment/${appt.id}`, { status: Status.COMPLETED })
-    appt.status = Status.COMPLETED
-  } catch (err) {
-    toast.error(`Unable to mark the appointment as ${Status.COMPLETED}.`)
-  }
-}
-
-async function cancelAppointment(appt) {
-  try {
-    await api.put(`/admin/appointment/${appt.id}`, { status: Status.CANCELLED })
-    appt.status = Status.CANCELLED
-  } catch (err) {
-    toast.error(`Unable to mark the appointment as ${Status.COMPLETED}.`)
-  }
-}
-
-onMounted(async () => {
+async function fetchAppointments() {
   try {
     const response = await api.get('/admin/appointments')
     appointments.value = response.data.appointments
   } catch (err) {
     toast.error('Failed to fetch the appointments.')
   }
-})
+}
+
+async function markCompleted(appt) {
+  try {
+    await api.put(`/admin/appointment/${appt.id}`, { status: ApptStatus.COMPLETED })
+    appt.status = ApptStatus.COMPLETED
+  } catch (err) {
+    toast.error(`Unable to mark the appointment as ${ApptStatus.COMPLETED}.`)
+  }
+}
+
+async function cancelAppointment(appt) {
+  try {
+    await api.put(`/admin/appointment/${appt.id}`, { status: ApptStatus.CANCELLED })
+    appt.status = ApptStatus.CANCELLED
+  } catch (err) {
+    toast.error(`Unable to mark the appointment as ${ApptStatus.COMPLETED}.`)
+  }
+}
+
+onMounted(fetchAppointments)
 </script>
 
 <style scoped>

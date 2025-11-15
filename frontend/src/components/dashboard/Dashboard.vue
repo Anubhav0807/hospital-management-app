@@ -1,5 +1,6 @@
 <template>
   <div class="dashboard">
+
     <!-- Navbar (shared component) -->
     <Navbar :title="title" :tabs="tabsWithoutHome" :current-view="currentView" @change-tab="changeTab"
       @toggle-menu="toggleMenu" @logout="logoutAndClose" />
@@ -12,6 +13,7 @@
     <div class="container mt-4" v-if="currentView">
       <component :is="components[currentView]" />
     </div>
+    
   </div>
 </template>
 
@@ -57,7 +59,8 @@ if (props.user.role === 'admin') {
   }
 }
 
-// Common Medical History Tab
+// Common Tabs
+components.AnalyticsTab = defineAsyncComponent(() => import('./AnalyticsTab.vue'))
 components.HistoryTab = defineAsyncComponent(() => import('./HistoryTab.vue'))
 
 const tabsWithoutHome = computed(() => props.tabs.slice(1))
@@ -65,7 +68,7 @@ const tabsWithoutHome = computed(() => props.tabs.slice(1))
 const currentView = ref(null)
 const isMenuOpen = ref(false)
 
-// --- Tab control ---
+// Tab control
 function updateTabFromQuery() {
   const tabName = route.query.tab
   const match = props.tabs.find(t => t.name === tabName)
@@ -77,7 +80,7 @@ function changeTab(tab) {
   router.replace({ query: { tab: tab.name } })
 }
 
-// --- Menu & Navigation ---
+// Menu & Navigation
 function toggleMenu() {
   isMenuOpen.value = !isMenuOpen.value
 }
@@ -109,7 +112,7 @@ function handleResize() {
   }
 }
 
-// --- Lifecycle ---
+// Lifecycle
 watch(() => route.query.tab, updateTabFromQuery)
 
 onMounted(() => {

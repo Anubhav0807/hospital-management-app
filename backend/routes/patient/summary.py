@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import User, Appointment, Treatment, StatusEnum
+from models import User, Appointment, Treatment, ApptStatus
 
 summary_bp = Blueprint("summary_bp", __name__)
 
@@ -14,14 +14,14 @@ def patient_summary():
     return jsonify({"error": "Unauthorized"}), 403
 
   # Stats
-  upcoming_count = Appointment.query.filter_by(patient_id=user_id, status=StatusEnum.BOOKED).count()
-  visited_count = Appointment.query.filter_by(patient_id=user_id, status=StatusEnum.COMPLETED).count()
+  upcoming_count = Appointment.query.filter_by(patient_id=user_id, status=ApptStatus.BOOKED).count()
+  visited_count = Appointment.query.filter_by(patient_id=user_id, status=ApptStatus.COMPLETED).count()
   prescriptions_count = Treatment.query.join(Appointment).filter(Appointment.patient_id == user_id).count()
 
   # Next appointment
   next_appt = (
     Appointment.query
-    .filter(Appointment.patient_id == user_id, Appointment.status == StatusEnum.BOOKED)
+    .filter(Appointment.patient_id == user_id, Appointment.status == ApptStatus.BOOKED)
     .order_by(Appointment.appointment_datetime.asc())
     .first()
   )
@@ -30,7 +30,7 @@ def patient_summary():
   recent_treat = (
     Treatment.query
     .join(Appointment)
-    .filter(Appointment.patient_id == user_id, Appointment.status == StatusEnum.COMPLETED)
+    .filter(Appointment.patient_id == user_id, Appointment.status == ApptStatus.COMPLETED)
     .order_by(Appointment.appointment_datetime.desc())
     .first()
   )

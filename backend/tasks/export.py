@@ -5,7 +5,7 @@ import csv
 import io
 import os
 
-from models import db, User, Appointment, Treatment, RoleEnum
+from models import db, User, Appointment, Treatment, Role
 from routes import mail
 
 @shared_task
@@ -61,7 +61,7 @@ def export_treatment_history_csv(patient_id, requester_id):
   # Prepare email
   filename = f"treatment_history_{datetime.now().strftime('%Y_%m_%d')}.csv"
 
-  if requester.role == RoleEnum.ADMIN:
+  if requester.role == Role.ADMIN:
     mail_subject = "Patient Treatment History Export"
     mail_body = (
       f"Dear Admin,\n\n"
@@ -70,7 +70,7 @@ def export_treatment_history_csv(patient_id, requester_id):
     )
     filename = f"patient{patient_id}_" + filename
 
-  elif requester.role == RoleEnum.DOCTOR:
+  elif requester.role == Role.DOCTOR:
     mail_subject = "Patient Treatment History Export"
     mail_body = (
       f"Dear Dr. {requester.name},\n\n"
@@ -79,7 +79,7 @@ def export_treatment_history_csv(patient_id, requester_id):
     )
     filename = f"patient{patient_id}_" + filename
 
-  elif requester.role == RoleEnum.PATIENT:
+  elif requester.role == Role.PATIENT:
     mail_subject = "Your Treatment History Export"
     mail_body = (
       f"Dear {patient.name},\n\n"

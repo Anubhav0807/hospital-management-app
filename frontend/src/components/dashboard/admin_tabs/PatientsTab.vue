@@ -44,7 +44,7 @@
             </td>
             <td class="text-center">
 
-              <!-- NEW: History Button -->
+              <!-- History Button -->
               <button class="btn btn-sm btn-outline-info me-2" @click="openHistory(patient.id)">
                 <i class="bi bi-clock-history"></i>
               </button>

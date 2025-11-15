@@ -1,7 +1,9 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy import or_
+from datetime import datetime
 
-from models import db, User, Appointment, Treatment, RoleEnum
+from models import db, User, Appointment, Treatment, Role
 from tasks import export_treatment_history_csv
 
 history_bp = Blueprint("history_bp", __name__, url_prefix="/api/history")
@@ -14,19 +16,65 @@ def get_treatments():
 
   patient_id, error = resolve_patient_access(user, request)
   if error:
-    return error  # <-- this returns (json, status_code)
+    return error
 
-  # Now patient_id is safe and validated
+  # Query parameters
+  page = int(request.args.get("page", 1))
+  per_page = int(request.args.get("per_page", 10))
+
+  search = request.args.get("search", "").strip().lower()
+  start_date = request.args.get("start_date")
+  end_date = request.args.get("end_date")
+
+  # Base query
   query = (
     db.session.query(Treatment, Appointment)
     .join(Appointment)
     .filter(Appointment.patient_id == patient_id)
-    .order_by(Appointment.appointment_datetime.desc())
   )
 
-  treatments = []
-  for treatment, appointment in query.all():
-    treatments.append({
+  # Date filtering
+  if start_date:
+    try:
+      start = datetime.fromisoformat(start_date)
+      query = query.filter(Appointment.appointment_datetime >= start)
+    except:
+      pass
+
+  if end_date:
+    try:
+      end = datetime.fromisoformat(end_date)
+      end = end.replace(hour=23, minute=59, second=59)
+      query = query.filter(Appointment.appointment_datetime <= end)
+    except:
+      pass
+
+  # Search filtering
+  if search:
+    query = query.filter(
+      or_(
+        Treatment.diagnosis.ilike(f"%{search}%"),
+        Treatment.prescription.ilike(f"%{search}%"),
+        Treatment.notes.ilike(f"%{search}%"),
+        Treatment.test_done.ilike(f"%{search}%")
+      )
+    )
+
+  # Total count before pagination
+  total = query.count()
+
+  # Pagination
+  results = (
+    query.order_by(Appointment.appointment_datetime.desc())
+    .limit(per_page)
+    .offset((page - 1) * per_page)
+    .all()
+  )
+
+  # Build response
+  records = []
+  for treatment, appointment in results:
+    records.append({
       "id": treatment.id,
       "appointment_id": treatment.appointment_id,
       "date": appointment.appointment_datetime.isoformat(),
@@ -37,7 +85,10 @@ def get_treatments():
       "notes": treatment.notes
     })
 
-  return jsonify({"treatments": treatments}), 200
+  return jsonify({
+    "treatments": records,
+    "total": total
+  }), 200
 
 @history_bp.route("/export", methods=["POST"])
 @jwt_required()
@@ -69,7 +120,7 @@ def resolve_patient_access(user, req):
     return None, (jsonify({"error": "User not found"}), 404)
 
   # Determine patient_id based on role
-  if user.role == RoleEnum.PATIENT:
+  if user.role == Role.PATIENT:
     patient_id = user.id
 
   else:
@@ -85,15 +136,15 @@ def resolve_patient_access(user, req):
 
   # Validate target user exists and is a patient
   target = User.query.get(patient_id)
-  if not target or target.role != RoleEnum.PATIENT:
+  if not target or target.role != Role.PATIENT:
     return None, (jsonify({"error": "Invalid patient_id"}), 404)
 
   # Admin: allowed for all patients
-  if user.role == RoleEnum.ADMIN:
+  if user.role == Role.ADMIN:
     return patient_id, None
 
   # Doctor: only allowed if they have an appointment with this patient
-  if user.role == RoleEnum.DOCTOR:
+  if user.role == Role.DOCTOR:
     has_relation = Appointment.query.filter_by(
       doctor_id=user.id,
       patient_id=patient_id
@@ -108,7 +159,7 @@ def resolve_patient_access(user, req):
     return patient_id, None
 
   # 6. Patient: only allowed to view themselves
-  if user.role == RoleEnum.PATIENT:
+  if user.role == Role.PATIENT:
     return patient_id, None
 
   # Fallback (unsupported role)

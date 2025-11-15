@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from datetime import datetime, timedelta
+import uuid
 from models import *
 
 appointments_bp = Blueprint("appointments_bp", __name__)
@@ -42,13 +43,13 @@ def get_appointments():
 
   # Compute stats
   today_count = sum(1 for a in appointments if a.appointment_datetime.date() == now.date())
-  completed_count = sum(1 for a in appointments if a.status == StatusEnum.COMPLETED)
+  completed_count = sum(1 for a in appointments if a.status == ApptStatus.COMPLETED)
 
   # Patient count (booked or completed only)
   active_patients = {
     a.patient_id
     for a in appointments
-    if a.status in [StatusEnum.BOOKED, StatusEnum.COMPLETED]
+    if a.status in [ApptStatus.BOOKED, ApptStatus.COMPLETED]
   }
   patient_count = len(active_patients)
 
@@ -71,7 +72,7 @@ def cancel_appointment(appt_id):
   if not appt or appt.doctor_id != user_id:
     return jsonify({"error": "Appointment not found"}), 404
 
-  appt.status = StatusEnum.CANCELLED
+  appt.status = ApptStatus.CANCELLED
   db.session.commit()
 
   return jsonify({"message": "Appointment cancelled successfully"})
@@ -84,6 +85,7 @@ def create_treatment():
   visit_type = data.get("visit_type")
   diagnosis = data.get("diagnosis")
   test_done = data.get("test_done")
+  fee = data.get("fee")
   prescription = data.get("prescription")
   notes = data.get("notes")
 
@@ -93,13 +95,15 @@ def create_treatment():
 
   treatment = Treatment(
     appointment_id=appointment_id,
-    visit_type=VisitTypeEnum(visit_type),
+    visit_type=VisitType(visit_type),
     diagnosis=diagnosis,
     test_done=test_done,
     prescription=prescription,
     notes=notes,
+    fee=fee,
+    payment_token=uuid.uuid4().hex
   )
-  appt.status = StatusEnum.COMPLETED
+  appt.status = ApptStatus.COMPLETED
 
   db.session.add(treatment)
   db.session.commit()

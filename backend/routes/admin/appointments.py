@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt
-from models import db, Appointment, StatusEnum
+from models import db, Appointment, ApptStatus
 
 appointments_bp = Blueprint("appointments_bp", __name__)
 
@@ -36,11 +36,11 @@ def update_appointment_status(appointment_id):
   data = request.get_json()
   status = data.get("status")
 
-  if status not in StatusEnum._value2member_map_:
+  if status not in ApptStatus._value2member_map_:
     return jsonify({"error": "Invalid status"}), 400
 
   appt = Appointment.query.get_or_404(appointment_id)
-  appt.status = StatusEnum(status)
+  appt.status = ApptStatus(status)
   db.session.commit()
 
   return jsonify({"message": "Appointment updated successfully"}), 200

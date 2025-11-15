@@ -1,13 +1,11 @@
 <template>
   <div class="availability-tab container py-4">
+    
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h3 class="fw-semibold text-primary mb-0 d-flex align-items-center">
         <i class="bi bi-clock-history me-2"></i> Weekly Availability
       </h3>
-      <button class="btn btn-outline-primary btn-sm" @click="fetchAvailability">
-        <i class="bi bi-arrow-clockwise me-1"></i> Refresh
-      </button>
     </div>
 
     <!-- Week Timeline -->

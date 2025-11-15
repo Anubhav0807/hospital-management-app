@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from models import db, User, Doctor, Department, RoleEnum
+from models import db, User, Doctor, Department, Role
 import hashlib
 
 manage_doctors_bp = Blueprint("manage_doctors_bp", __name__)
@@ -84,7 +84,7 @@ def add_doctor():
       password=hashed_pw,
       name=data["name"],
       contact_number=data["contact"],
-      role=RoleEnum.DOCTOR
+      role=Role.DOCTOR
     )
 
     db.session.add(new_user)

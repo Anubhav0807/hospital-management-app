@@ -1,5 +1,6 @@
 <template>
   <div class="container py-4">
+    
     <!-- Greeting -->
     <div class="mb-4">
       <h4 class="fw-bold">Welcome, {{ user.name }} 👋</h4>

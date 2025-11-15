@@ -24,11 +24,12 @@
       </p>
 
       <div class="d-flex gap-2 mt-2">
-        <button class="btn btn-outline-primary btn-sm" @click="handleReschedule" :disabled="appt.status !== 'booked'">
+        <button class="btn btn-outline-primary btn-sm" @click="handleReschedule"
+          :disabled="appt.status !== ApptStatus.BOOKED">
           <i class="bi bi-arrow-repeat me-1"></i> Reschedule
         </button>
         <button class="btn btn-outline-danger btn-sm" @click="emit('cancel', appt)"
-          :disabled="appt.status !== 'booked'">
+          :disabled="appt.status !== ApptStatus.BOOKED">
           <i class="bi bi-x-circle me-1"></i> Cancel
         </button>
       </div>
@@ -38,7 +39,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { formatDateTime, titleCase } from '../../../../utils'
+import { ApptStatus, formatDateTime, titleCase } from '../../../../utils'
 
 const router = useRouter()
 const props = defineProps({ appt: Object, title: String })

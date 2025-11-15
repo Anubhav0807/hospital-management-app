@@ -34,18 +34,19 @@
             type="text"
             class="form-control"
             placeholder="Search diagnosis, notes, prescription, tests..."
+            @input="onFilterChange"
           />
         </div>
       </div>
 
       <div class="col-md-3">
         <label class="form-label small">Start Date</label>
-        <input type="date" v-model="startDate" class="form-control" />
+        <input type="date" v-model="startDate" class="form-control" @change="onFilterChange" />
       </div>
 
       <div class="col-md-3">
         <label class="form-label small">End Date</label>
-        <input type="date" v-model="endDate" class="form-control" />
+        <input type="date" v-model="endDate" class="form-control" @change="onFilterChange" />
       </div>
     </div>
 
@@ -64,7 +65,17 @@
         </thead>
 
         <tbody>
-          <tr v-for="(t, index) in paginated" :key="t.id">
+          <!-- Loading Spinner -->
+          <tr v-if="loading">
+            <td colspan="7" class="text-center py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Records -->
+          <tr v-for="(t, index) in treatments" :key="t.id" v-else>
             <td>{{ index + 1 + (currentPage - 1) * perPage }}</td>
             <td>{{ formatDate(t.date) }}</td>
             <td>{{ titleCase(t.visit_type) }}</td>
@@ -73,15 +84,22 @@
             <td>{{ t.prescription || '-' }}</td>
             <td>{{ t.notes || '-' }}</td>
           </tr>
+
+          <!-- No Data -->
+          <tr v-if="!loading && treatments.length === 0">
+            <td colspan="7" class="text-center py-3 text-muted">No records found.</td>
+          </tr>
         </tbody>
       </table>
     </div>
 
     <!-- Pagination -->
-    <nav class="mt-3 d-flex justify-content-center">
+    <nav class="mt-3 d-flex justify-content-center" v-if="totalPages > 1">
       <ul class="pagination">
         <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <button class="page-link" @click="prevPage">Previous</button>
+          <button class="page-link" @click="goToPage(currentPage - 1)">
+            Previous
+          </button>
         </li>
 
         <li
@@ -90,16 +108,15 @@
           :key="page"
           :class="{ active: currentPage === page }"
         >
-          <button class="page-link" @click="currentPage = page">
+          <button class="page-link" @click="goToPage(page)">
             {{ page }}
           </button>
         </li>
 
-        <li
-          class="page-item"
-          :class="{ disabled: currentPage === totalPages }"
-        >
-          <button class="page-link" @click="nextPage">Next</button>
+        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+          <button class="page-link" @click="goToPage(currentPage + 1)">
+            Next
+          </button>
         </li>
       </ul>
     </nav>
@@ -114,13 +131,14 @@ import { titleCase, formatDate } from '../../utils'
 import api from '../../api'
 
 const toast = useToast()
-
 const route = useRoute()
 const router = useRouter()
 
 const patient_id = ref(route.query.patient_id)
 
 const treatments = ref([])
+const totalRecords = ref(0)
+
 const searchQuery = ref('')
 const startDate = ref('')
 const endDate = ref('')
@@ -128,59 +146,45 @@ const endDate = ref('')
 const currentPage = ref(1)
 const perPage = ref(10)
 
-async function fetchTreatments() {
+const loading = ref(false)
+
+async function fetchTreatments(page = 1) {
+  loading.value = true
   try {
     const res = await api.get('/history/treatments', {
-      params: { patient_id: patient_id.value }
+      params: {
+        patient_id: patient_id.value,
+        page,
+        per_page: perPage.value,
+        search: searchQuery.value,
+        start_date: startDate.value,
+        end_date: endDate.value
+      }
     })
+
     treatments.value = res.data.treatments
+    totalRecords.value = res.data.total
   } catch (err) {
-    toast.error("Failed to load history.")
+    toast.error('Failed to load history.')
+  } finally {
+    loading.value = false
   }
 }
 
-const filtered = computed(() => {
-  let list = treatments.value
+function goToPage(page) {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  fetchTreatments(page)
+}
 
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase()
-    list = list.filter(t =>
-      [t.diagnosis, t.prescription, t.notes, t.test_done]
-        .filter(Boolean)
-        .some(field => field.toLowerCase().includes(q))
-    )
-  }
-
-  if (startDate.value) {
-    const start = new Date(startDate.value)
-    list = list.filter(t => new Date(t.date) >= start)
-  }
-
-  if (endDate.value) {
-    const end = new Date(endDate.value)
-    end.setHours(23, 59, 59)
-    list = list.filter(t => new Date(t.date) <= end)
-  }
-
-  return list
-})
+function onFilterChange() {
+  currentPage.value = 1
+  fetchTreatments(1)
+}
 
 const totalPages = computed(() =>
-  Math.ceil(filtered.value.length / perPage.value)
+  Math.ceil(totalRecords.value / perPage.value)
 )
-
-const paginated = computed(() => {
-  const start = (currentPage.value - 1) * perPage.value
-  return filtered.value.slice(start, start + perPage.value)
-})
-
-function prevPage() {
-  if (currentPage.value > 1) currentPage.value--
-}
-
-function nextPage() {
-  if (currentPage.value < totalPages.value) currentPage.value++
-}
 
 async function exportCSV() {
   try {
@@ -194,7 +198,7 @@ async function exportCSV() {
   }
 }
 
-onMounted(fetchTreatments)
+onMounted(() => fetchTreatments(1))
 </script>
 
 <style scoped>

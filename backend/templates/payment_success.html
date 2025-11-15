@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Successful</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding-top: 20vh;
+      background: #f6fff8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .circle {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: #e7f9ed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 25px;
+
+      animation: pop 0.45s ease-out;
+    }
+
+    .circle i {
+      font-size: 110px;
+      color: #28a745;
+      animation: fadeIn 0.45s ease-out;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.4); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin: 0;
+      color: #444;
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+    }
+
+    .amount {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #28a745;
+      margin-top: 5px;
+    }
+
+    /* Desktop scaling */
+    @media (min-width: 768px) {
+      .circle {
+        width: 200px;
+        height: 200px;
+      }
+
+      .circle i {
+        font-size: 130px;
+      }
+
+      h2 {
+        font-size: 2.5rem;
+      }
+
+      .amount {
+        font-size: 2.3rem;
+      }
+    }
+  </style>
+
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" />
+</head>
+
+<body>
+
+  <div class="circle">
+    <i class="bi bi-check2"></i>
+  </div>
+
+  <h2>Payment Successful</h2>
+  <p>Your payment has been received.</p>
+
+  <div class="amount">₹{{ amount }}</div>
+
+</body>
+</html>

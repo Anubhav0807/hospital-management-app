@@ -43,7 +43,7 @@
     <div v-if="activeTab === 'past'">
       <div v-if="past.length" class="row g-3">
         <div v-for="treat in past" :key="treat.id" class="col-md-6">
-          <TreatmentCard :treat="treat" />
+          <TreatmentCard :treat="treat" @pay="openPaymentModal" />
         </div>
       </div>
 
@@ -53,7 +53,8 @@
       </div>
     </div>
 
-    <CancelModal ref="cancelModalRef" :appt="selectedAppt" @cancelled="handleCancelled" />
+    <CancelModal ref="cancelModalRef" @cancelled="handleCancelled" />
+    <PaymentModal ref="paymentModalRef" @paid="loadAppointments" />
 
   </div>
 </template>
@@ -67,13 +68,16 @@ import api from '../../../api'
 import AppointmentCard from './ui/AppointmentCard.vue'
 import TreatmentCard from './ui/TreatmentCard.vue'
 import CancelModal from './ui/CancelModal.vue'
+import PaymentModal from './ui/PaymentModal.vue'
 
 const router = useRouter()
 const toast = useToast()
 
 const activeTab = ref('upcoming')
-const selectedAppt = ref(null)
+
 const cancelModalRef = ref(null)
+const paymentModalRef = ref(null)
+
 const upcoming = ref([])
 const past = ref([])
 
@@ -95,8 +99,12 @@ function navigateToBooking() {
 }
 
 function openCancelModal(appt) {
-  selectedAppt.value = appt
-  cancelModalRef.value.show()
+  console.log("openCancelModal")
+  cancelModalRef.value.show(appt)
+}
+
+function openPaymentModal(treat) {
+  paymentModalRef.value.show(treat)
 }
 
 async function handleCancelled() {

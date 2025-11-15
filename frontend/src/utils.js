@@ -1,12 +1,25 @@
-export const Status = {
-  BOOKED: "booked",
-  COMPLETED: "completed",
-  CANCELLED: "cancelled"
+export const Role = {
+  ADMIN: 'admin',
+  DOCTOR: 'doctor',
+  PATIENT: 'patient'
+}
+
+export const ApptStatus = {
+  BOOKED: 'booked',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled'
 }
 
 export const VisitType = {
-  ONLINE: "online",
-  OFFLINE: "offline"
+  ONLINE: 'online',
+  OFFLINE: 'offline'
+}
+
+export const PaymentStatus = {
+  PENDING: 'pending',
+  PAID: 'paid',
+  FAILED: 'failed',
+  REFUNDED: 'refunded'
 }
 
 export function formatDate(dt) {

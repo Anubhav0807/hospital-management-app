@@ -43,7 +43,7 @@
 
             <!-- Action Buttons -->
             <div class="d-flex gap-2">
-              <!-- NEW: Navigate to History -->
+              <!-- Navigate to History -->
               <button
                 class="btn btn-outline-info btn-sm"
                 title="Medical History"

@@ -16,6 +16,7 @@ will be imported when using a wildcard import. If __all__ is not defined,
 all public names (those not starting with an underscore) are imported.
 """
 __all__ = [
-  "db", "User", "Doctor", "Patient", "RoleEnum", "GenderEnum",
-  "Availability", "Appointment", "Treatment", "Department", "StatusEnum", "VisitTypeEnum"
+  "db", "User", "Doctor", "Patient",
+  "Availability", "Appointment", "Treatment", "Department",
+  "Role", "Gender", "ApptStatus", "VisitType", "PaymentStatus"
 ]

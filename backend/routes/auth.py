@@ -82,7 +82,7 @@ def register_patient():
     password=hashed_pw,
     name=name,
     contact_number=contact_number,
-    role=RoleEnum.PATIENT,
+    role=Role.PATIENT,
   )
   db.session.add(new_user)
   db.session.flush()  # Get new_user.id before commit
@@ -91,7 +91,7 @@ def register_patient():
   patient_profile = Patient(
     user_id=new_user.id,
     age=age,
-    gender=GenderEnum(gender),
+    gender=Gender(gender),
     address=address
   )
   db.session.add(patient_profile)
@@ -258,7 +258,7 @@ def update_profile():
     if "age" in pat_data:
       pat.age = int(pat_data["age"])
     if "gender" in pat_data:
-      pat.gender = GenderEnum(pat_data["gender"])
+      pat.gender = Gender(pat_data["gender"])
     if "address" in pat_data:
       pat.address = pat_data["address"]
 

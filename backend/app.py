@@ -17,11 +17,13 @@ def create_app():
   app = Flask(__name__)
 
   # Register Blueprints
+  app.register_blueprint(base_bp)
   app.register_blueprint(auth_bp)
   app.register_blueprint(admin_bp)
   app.register_blueprint(doctor_bp)
   app.register_blueprint(patient_bp)
   app.register_blueprint(history_bp)
+  app.register_blueprint(analytics_bp)
 
   # Configure Database
   database_url = os.getenv("DATABASE_URL")
@@ -71,7 +73,7 @@ def create_app():
         password=pwHash,
         name="admin",
         contact_number="+91 90000 90000",
-        role=RoleEnum.ADMIN,
+        role=Role.ADMIN,
       )
       db.session.add(admin)
       db.session.commit()

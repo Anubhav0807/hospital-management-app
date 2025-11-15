@@ -1,12 +1,12 @@
 from . import db
 import enum
 
-class RoleEnum(enum.Enum):
+class Role(enum.Enum):
   ADMIN = "admin"
   DOCTOR = "doctor"
   PATIENT = "patient"
 
-class GenderEnum(enum.Enum):
+class Gender(enum.Enum):
   MALE = "male"
   FEMALE = "female"
   OTHER = "other"
@@ -19,7 +19,7 @@ class User(db.Model):
   password = db.Column(db.String(128), nullable=False)
   name = db.Column(db.String(64), nullable=False)
   contact_number = db.Column(db.String(16), nullable=False)
-  role = db.Column(db.Enum(RoleEnum), nullable=False)
+  role = db.Column(db.Enum(Role), nullable=False)
 
   # Relationships (these profiles can be None)
   doctor_profile = db.relationship("Doctor", back_populates="user", uselist=False)
@@ -31,15 +31,15 @@ class User(db.Model):
   # Role helpers
   @property
   def is_admin(self):
-    return self.role == RoleEnum.ADMIN
+    return self.role == Role.ADMIN
 
   @property
   def is_doctor(self):
-    return self.role == RoleEnum.DOCTOR
+    return self.role == Role.DOCTOR
 
   @property
   def is_patient(self):
-    return self.role == RoleEnum.PATIENT
+    return self.role == Role.PATIENT
 
 class Doctor(db.Model):
   __tablename__ = "doctor"
@@ -59,7 +59,7 @@ class Patient(db.Model):
 
   user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
   age = db.Column(db.Integer, nullable=False)
-  gender = db.Column(db.Enum(GenderEnum), nullable=False)
+  gender = db.Column(db.Enum(Gender), nullable=False)
   address = db.Column(db.Text, nullable=False)
   blacklisted = db.Column(db.Boolean, default=False, nullable=False)
 
