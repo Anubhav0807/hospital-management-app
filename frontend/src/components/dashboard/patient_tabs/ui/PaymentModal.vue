@@ -149,7 +149,7 @@ async function checkStatus() {
   if (!selectedTreat.value) return
 
   try {
-    const res = await api.get(`/patient/payment/status/${selectedTreat.value.id}`)
+    const res = await api.get(`/patient/payment/status/${selectedTreat.value.treat_id}`)
     if (res.data.status === PaymentStatus.PAID) {
       stopPolling()
       triggerSuccess()

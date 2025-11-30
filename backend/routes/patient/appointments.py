@@ -33,6 +33,7 @@ def get_appointments():
       },
       "date": a.appointment_datetime.isoformat(),
       "status": a.status.value,
+      "treat_id": a.treatment.id if a.treatment else None,
       "diagnosis": a.treatment.diagnosis if a.treatment else None,
       "prescription": a.treatment.prescription if a.treatment else None,
       "fee": a.treatment.fee if a.treatment else None,
